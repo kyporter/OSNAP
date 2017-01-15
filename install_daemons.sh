@@ -6,7 +6,7 @@ cd $HOME/postgres
 
 git checkout -b REL9_5_STABLE origin/REL9_5_STABLE
 
-./configure --prefix=$HOME/installed
+./configure --prefix=$1
 
 make
 
@@ -20,7 +20,7 @@ tar -xjf httpd-2.4.25.tar.bz2
 
 cd /home/osnapdev/httpd-2.4.25
 
-./configure --prefix=$HOME/installed
+./configure --prefix=$1
 
 make
 
