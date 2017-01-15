@@ -1,3 +1,5 @@
+cd $HOME
+
 git clone https://github.com/postgres/postgres.git
 
 cd $HOME/postgres
