@@ -5,6 +5,11 @@ username text not null,
 active boolean not null,
 PRIMARY KEY(user_pk));
 
+CREATE TABLE roles(
+role_pk serial not null,
+title text not null,
+PRIMARY KEY(role_pk));
+
 CREATE TABLE user_is(
 user_fk int not null,
 role_fk int not null);
@@ -64,3 +69,23 @@ asset_fk int not null,
 convoy_fk int not null,
 load_dt timestamp,
 unload_dt timestamp);
+
+CREATE TABLE levels(
+level_pk serial not null,
+abbrv text not null,
+comment text,
+PRIMARY KEY(level_pk));
+
+CREATE TABLE compartments(
+compartment_pk serial not null,
+abbrv text not null,
+comment text,
+PRIMARY KEY(compartment_pk));
+
+CREATE TABLE security_tags(
+tag_pk serial not null,
+level_fk int not null,
+compartment_fk int not null,
+user_fk int,
+product_fk int,
+asset_fk int);
