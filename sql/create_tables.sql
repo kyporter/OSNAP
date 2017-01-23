@@ -32,3 +32,35 @@ CREATE TABLE vehicles(
 vehicle_pk serial not null,
 asset_fk int,
 PRIMARY KEY(vehicle_pk)); 
+
+CREATE TABLE facilities(
+facility_pk serial not null,
+fcode text not null,
+common_name text not null,
+location text,
+PRIMARY KEY(facility_pk));
+
+CREATE TABLE asset_at(
+asset_fk int not null,
+facility_fk int not null,
+arrive_dt timestamp,
+depart_dt timestamp);
+
+CREATE TABLE convoys(
+convoy_pk serial not null,
+request text not null,
+source_fk int not null,
+dest_fk int not null,
+depart_dt timestamp,
+arrive_dt timestamp,
+PRIMARY KEY(convoy_pk));
+
+CREATE TABLE used_by(
+vehicle_fk int not null,
+convoy_fk int not null);
+
+CREATE TABLE asset_on(
+asset_fk int not null,
+convoy_fk int not null,
+load_dt timestamp,
+unload_dt timestamp);
