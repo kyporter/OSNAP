@@ -53,6 +53,26 @@ with open('./osnap_legacy/security_compartments.csv', 'r') as f:
 		firstline = False
 f.close()
 
+
+with open('./osnap_legacy/product_list.csv', 'r') as f:
+	reader = csv.reader(f)
+	firstline = True
+	for row in reader:
+		if firstline:
+			next
+		else:
+			if row[0] == '1L H2O':
+				row[0] = '1 L H2O x1872'
+			if row[0] == 'notepad' and row[3] == '2.13':
+				row[0] = 'more expensive notepad'
+			print(str.format("INSERT INTO products (description, vendor, alt_description) VALUES ('{}','{}','{}');", row[0], row[4], row[2]))
+			if row[5] != '':
+				comptag = row[5].split(":")
+				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1],comptag[0],row[0])) 
+		firstline = False
+f.close()
+
+
 with open('./osnap_legacy/DC_inventory.csv', 'r') as f:
 	reader = csv.reader(f)
 	firstline = True
@@ -115,8 +135,7 @@ with open('./osnap_legacy/MB005_inventory.csv', 'r') as f:
 		else:
 			print(str.format("INSERT INTO products (description) SELECT '{}' WHERE NOT EXISTS (SELECT description FROM products WHERE description='{}');",row[1],row[1]))
 			print(str.format("INSERT INTO assets (asset_tag,product_fk) SELECT '{}', (SELECT product_pk FROM products WHERE description='{}')  WHERE NOT EXISTS (SELECT asset_tag FROM assets WHERE asset_tag='{}');", row[0], row[1], row[0]))
-			print(str.format("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = '{}'),(SELECT facility_pk FROM facilities 
-WHERE common_name='MB 005'), '12/7/15');", row[0]))			
+			print(str.format("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = '{}'),(SELECT facility_pk FROM facilities WHERE common_name='MB 005'), '12/7/15');", row[0]))			
 		firstline = False
 f.close()
 
