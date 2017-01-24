@@ -2,6 +2,7 @@ import csv
 with open('./osnap_legacy/transit.csv', 'r') as f:
 	reader = csv.reader(f)
 	firstline = True
+	request_numbers = []
 	for row in reader:
 		if firstline:
 			next
@@ -19,7 +20,9 @@ with open('./osnap_legacy/transit.csv', 'r') as f:
 				row[1] = "Los Alamos, NM"
 			for i in range(1,3):
 				print(str.format("INSERT INTO facilities (common_name) SELECT '{}' WHERE NOT EXISTS (SELECT common_name FROM facilities WHERE common_name = '{}');", row[i], row[i]))   
-			print(str.format("INSERT INTO convoys (request,depart_dt,arrive_dt,source_fk,dest_fk) VALUES ((SELECT '{}' WHERE NOT EXISTS (SELECT request FROM convoys WHERE request = '{}')),('{}' WHERE NOT EXISTS (SELECT request FROM convoys WHERE request = '{}')),('{}' WHERE NOT EXISTS (SELECT request FROM convoys WHERE request = '{}')),(SELECT facility_pk FROM facilities WHERE common_name='{}' WHERE NOT EXISTS (SELECT request FROM convoys WHERE request = '{}')),(SELECT facility_pk FROM facilities WHERE common_name='{}' WHERE NOT EXISTS (SELECT request FROM convoys WHERE request = '{}')));", row[5],row[5],row[3],row[5],row[4],row[5], row[1],row[5], row[2],row[5]))
+			if row[5] not in request_numbers:
+				request_numbers.append(row[5])
+				print(str.format("INSERT INTO convoys (request,depart_dt,arrive_dt,source_fk,dest_fk) VALUES (('{}'),('{}'),('{}'),(SELECT facility_pk FROM facilities WHERE common_name='{}' ),(SELECT facility_pk FROM facilities WHERE common_name='{}' ));", row[5], row[3], row[4], row[1], row[2]))
 
 			for item in assets:
 					print(str.format("INSERT INTO asset_at (asset_fk, facility_fk,arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag='{}'), (SELECT facility_pk FROM facilities WHERE common_name='{}'),'{}');",item,row[2],row[4]))
