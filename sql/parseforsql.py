@@ -1,4 +1,8 @@
 import csv
+
+fcodes = {"Washington, D.C." : 'DC', "MB 005" : "MB005", "Sparks, NV" : "SPNV", "Headquarters" : "HQ", 
+"National City" : "NC"}
+
 with open('./osnap_legacy/transit.csv', 'r') as f:
 	reader = csv.reader(f)
 	firstline = True
@@ -19,7 +23,10 @@ with open('./osnap_legacy/transit.csv', 'r') as f:
 			elif row[1] == "Las Alamos, NM":
 				row[1] = "Los Alamos, NM"
 			for i in range(1,3):
-				print(str.format("INSERT INTO facilities (common_name) SELECT '{}' WHERE NOT EXISTS (SELECT common_name FROM facilities WHERE common_name = '{}');", row[i], row[i]))   
+				if row[i] in fcodes:
+					print(str.format("INSERT INTO facilities (common_name, fcode) SELECT '{}', '{}' WHERE NOT EXISTS (SELECT common_name FROM facilities WHERE common_name = '{}');", row[i], fcodes[row[i]], row[i]))   
+				else:
+					print(str.format("INSERT INTO facilities (common_name) SELECT '{}' WHERE NOT EXISTS (SELECT common_name FROM facilities WHERE common_name = '{}');", row[i], row[i]))   
 			if row[5] not in request_numbers:
 				request_numbers.append(row[5])
 				print(str.format("INSERT INTO convoys (request,depart_dt,arrive_dt,source_fk,dest_fk) VALUES (('{}'),('{}'),('{}'),(SELECT facility_pk FROM facilities WHERE common_name='{}' ),(SELECT facility_pk FROM facilities WHERE common_name='{}' ));", row[5], row[3], row[4], row[1], row[2]))
