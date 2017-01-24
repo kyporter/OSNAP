@@ -2,8 +2,10 @@ curl https://classes.cs.uoregon.edu//17W/cis322/files/osnap_legacy.tar.gz > osna
 
 tar -xvzf osnap_legacy.tar.gz
 
-./populate_tables.sh
+postgres -p $1
 
-rm populate_tables.sh
-rm parseforsql.py
+python parseforsql.py > printresults.sql
+
+psql $2 -f printresults.sql
+
 rm printresults.sql
