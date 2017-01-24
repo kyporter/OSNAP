@@ -152,7 +152,7 @@ with open('./osnap_legacy/SPNV_inventory.csv', 'r') as f:
 			comps = row[3].strip('"').split(',')
 			for comp in comps:
 				comptag = comp.split(":")
-				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT asset_pk FROM assets WHERE asset_tag='{}'));", comptag[1],comptag[0],row[0]))
-				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1],comptag[0],row[1]))							
+				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT asset_pk FROM assets WHERE asset_tag='{}'));", comptag[1].lower().strip(),comptag[0].lower().strip(),row[0]))
+				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1].lower().strip(),comptag[0].lower().strip(),row[1]))							
 		firstline = False
 f.close()
