@@ -156,3 +156,19 @@ with open('./osnap_legacy/SPNV_inventory.csv', 'r') as f:
 				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1].lower().strip(),comptag[0].lower().strip(),row[1]))							
 		firstline = False
 f.close()
+
+
+with open('./osnap_legacy/convoy.csv', 'r') as f:
+	reader = csv.reader(f)
+	firstline = True
+	for row in reader:
+		if firstline:
+			next
+		else:
+			vehicles = row[7].strip('"').split(',')
+			for truck in vehicles:
+				print(str.format("INSERT INTO assets (asset_tag, description) VALUES ('{}', 'vehicle');", truck.strip()))
+				print(str.format("INSERT INTO vehicles (asset_fk) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = '{}'));", truck.strip()))
+				print(str.format("INSERT INTO used_by (convoy_fk, vehicle_fk) VALUES ((SELECT convoy_pk FROM convoys WHERE request = '{}'),(SELECT vehicle_pk FROM vehicles v JOIN assets a ON v.asset_fk=a.asset_pk WHERE a.asset_tag='{}'));", row[0], truck.strip()))
+		firstline = False
+f.close()
