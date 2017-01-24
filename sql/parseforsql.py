@@ -66,5 +66,26 @@ with open('./osnap_legacy/DC_inventory.csv', 'r') as f:
 			print(str.format("INSERT INTO assets (asset_tag,product_fk) SELECT '{}', (SELECT product_pk FROM products WHERE description='{}')  WHERE NOT EXISTS (SELECT asset_tag FROM assets WHERE asset_tag='{}');", row[0], row[1], row[0]))
 			print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1],comptag[0],row[1]))
 			print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT asset_pk FROM assets WHERE asset_tag='{}'));", comptag[1],comptag[0],row[0]))
+
+		firstline = False
+f.close()
+
+
+with open('./osnap_legacy/HQ_inventory.csv', 'r') as f:
+	reader = csv.reader(f)
+	firstline = True
+	product_desc = []
+	for row in reader:
+		if firstline:
+			next
+		else:
+			comptag = row[3].split(":")	
+			print(str.format("INSERT INTO products (description) SELECT '{}' WHERE NOT EXISTS (SELECT description FROM products WHERE description='{}');",row[1],row[1]))
+			print(str.format("INSERT INTO compartments (abbrv) SELECT '{}' WHERE NOT EXISTS (SELECT abbrv FROM compartments WHERE abbrv='{}');",comptag[0],comptag[0]))
+			print(str.format("INSERT INTO assets (asset_tag,product_fk) SELECT '{}', (SELECT product_pk FROM products WHERE description='{}')  WHERE NOT EXISTS (SELECT asset_tag FROM assets WHERE asset_tag='{}');", row[0], row[1], row[0]))
+			if row[1] not in product_desc:
+				product_desc.append(row[1])
+				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1],comptag[0],row[1]))
+			print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT asset_pk FROM assets WHERE asset_tag='{}'));", comptag[1],comptag[0],row[0]))
 		firstline = False
 f.close()
