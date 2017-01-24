@@ -32,7 +32,8 @@ with open('./osnap_legacy/transit.csv', 'r') as f:
 				print(str.format("INSERT INTO convoys (request,depart_dt,arrive_dt,source_fk,dest_fk) VALUES (('{}'),('{}'),('{}'),(SELECT facility_pk FROM facilities WHERE common_name='{}' ),(SELECT facility_pk FROM facilities WHERE common_name='{}' ));", row[5], row[3], row[4], row[1], row[2]))
 
 			for item in assets:
-					print(str.format("INSERT INTO asset_at (asset_fk, facility_fk,arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag='{}'), (SELECT facility_pk FROM facilities WHERE common_name='{}'),'{}');",item.strip(),row[2],row[4]))
+				print(str.format("INSERT INTO asset_at (asset_fk, facility_fk,arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag='{}'), (SELECT facility_pk FROM facilities WHERE common_name='{}'),'{}');",item.strip(),row[2],row[4]))
+				print(str.format("INSERT INTO asset_on (asset_fk, convoy_fk, load_dt, unload_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag='{}'),(SELECT convoy_pk FROM convoys WHERE request = '{}'), '{}', '{}');", item.strip(), row[5], row[3], row[4]))	
 		firstline = False 
 f.close()
 
