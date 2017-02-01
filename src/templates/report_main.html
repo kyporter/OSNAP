@@ -3,8 +3,16 @@
 	<head>
 		Main Reports Page
 	</head>
-	<body BGCOLOR="#ecefdc"><h2>This Page Will Display Reports based on 
-selected 
-parameters</h2>
+	<body BGCOLOR="#ecefdc"><h2>This is the Place to Select Facility Inventory or In-Transit 
+Listing</h2>
+
+	<form name="Facility_Choice" action="/facility_report" method="POST">
+		<select name="Facility_Choice">
+			<option value="DC">Washington, D.C.</option>
+			<option value="LA">Los Alamos, NM</option>
+		</select>
+		<button type="submit">Fetch Inventory!</button>
+	</form>
+
 	</body>
 </html>
