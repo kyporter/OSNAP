@@ -31,7 +31,9 @@ def transit():
 
 @app.route('/logout')
 def goodbye():
-    return render_template('logout.html')
+    byeuser = session['name']
+    session.clear()
+    return render_template('logout.html', username = byeuser)
 
 
 
