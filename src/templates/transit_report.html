@@ -1,5 +1,10 @@
 <html>
 	<body><h2>This Page will display all assets in transit on 
 {{ datecheck }}</h2>
+
+	<h1>{% for value in leftfac %}
+		Assets left {{ value }} on {{ datecheck }}
+		{% endfor %}
+	</h1>
 	</body>
 </html>
