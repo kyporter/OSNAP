@@ -7,11 +7,18 @@
 Listing</h2>
 
 	<form name="Facility_Choice" action="/facility_report" method="POST">
-		<select name="Facility_Choice">
-			<option value="DC">Washington, D.C.</option>
-			<option value="LA">Los Alamos, NM</option>
+		<select name="facility_name">
+			<option value="Washington, D.C.">Washington, D.C.</option>
+			<option value-"MB 005">MB 005</option>
+			<option value="Los Alamos, NM">Los Alamos, NM</option>
 		</select>
-		<button type="submit">Fetch Inventory!</button>
+
+		<select name="date">
+			<option value="1/4/2017">1/4/2017</option>
+			<option value="1/6/2017">1/6/2017</option>
+		</select>
+		
+		<input type="submit" value = "Fetch Inventory!"/>
 	</form>
 
 	<form action="/transit_report" method="POST">

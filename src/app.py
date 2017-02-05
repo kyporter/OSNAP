@@ -25,9 +25,18 @@ def report():
         session['name'] = username
         return render_template('report_main.html')
 
-@app.route('/facility_report')
+@app.route('/facility_report', methods=['POST', 'GET'])
 def facility():
-    return render_template('facility_report.html')
+    if request.method == 'POST':
+        datecheck = request.form["date"]
+        facname = request.form["facility_name"]
+        cur.execute('''SELECT a.asset_tag, a.description, aa.arrive_dt, aa.depart_dt 
+FROM asset_at aa JOIN facilities f ON aa.facility_fk = f.facility_pk JOIN assets a ON 
+a.asset_pk = aa.asset_fk WHERE f.common_name = (%s) AND (((%s) BETWEEN aa.arrive_dt AND aa.depart_dt) 
+OR (((%s) >= aa.arrive_dt) AND (aa.depart_dt IS NULL)));''', (facname, datecheck, datecheck))
+        return render_template('facility_report.html')
+    else:
+        return render_template('report_main.html')
 
 @app.route('/transit_report', methods=['POST', 'GET'])
 def transit():
