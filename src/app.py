@@ -53,7 +53,7 @@ f2.facility_pk = c.dest_fk JOIN asset_on t ON t.convoy_fk = c.convoy_pk JOIN ass
         return render_template('report_main.html')
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
     byeuser = session['name']
     session.clear()
