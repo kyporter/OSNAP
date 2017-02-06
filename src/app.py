@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request, session, redirect, url_for 
 import psycopg2 
 import psycopg2.extras
+from config import dbname, dbhost, dbport  ##FROM dellsword/lost app.py
+
 
 app = Flask(__name__)
 #Because this is what the websites told me to do(almost):
 app.secret_key = 'wecanpretendthisisarandomkeyright?'
 
-conn = psycopg2.connect(database="LOST", host="127.0.0.1", port="5432")
+conn = psycopg2.connect(database=dbname, host=dbhost, port=dbport)  ##using variables from config file
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)  ##Should create a cursor that produces a 	
 								##dictionary of results
 
@@ -42,7 +44,8 @@ def facility():
         if len(factuple) != 0:
             facname = factuple[0][0]
         else:
-            facname = 'Did Not Work'
+            facname = 'Did Not Work'  ##I'm leaving this in, if this shows up it means facility name wasn't read 
+##correctly from the form, which is important to know because it would affect the results displayed
         cur.execute('''SELECT a.asset_tag, a.description, aa.arrive_dt, aa.depart_dt 
 FROM asset_at aa JOIN facilities f ON aa.facility_fk = f.facility_pk JOIN assets a ON 
 a.asset_pk = aa.asset_fk WHERE f.common_name = (%s) AND (((%s) BETWEEN aa.arrive_dt AND aa.depart_dt) 
