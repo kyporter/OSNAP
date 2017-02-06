@@ -139,7 +139,7 @@ with open('./osnap_legacy/NC_inventory.csv', 'r') as f:
 				comptag = row[3].split(":")
 				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT asset_pk FROM assets WHERE asset_tag='{}'));", comptag[1],comptag[0],row[0]))
 				print(str.format("INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv='{}'),(SELECT compartment_pk FROM compartments WHERE abbrv='{}'),(SELECT product_pk FROM products WHERE description='{}'));", comptag[1],comptag[0],row[1]))
-			print(str.format("UPDATE asset_at SET depart_dt='{}' WHERE asset_fk=(SELECT asset_pk FROM assets WHERE asset_tag='{}');" row[5], row[0]))
+			print(str.format("UPDATE asset_at SET depart_dt='{}' WHERE asset_fk=(SELECT asset_pk FROM assets WHERE asset_tag='{}');", row[5], row[0]))
 	firstline = False
 f.close()
 
