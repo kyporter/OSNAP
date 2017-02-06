@@ -1,6 +1,28 @@
 <html>
 
-	<body><h2>This Page Will Display Facility Inventory Report</h2>
+	<body BGCOLOR="ecefdc"><h2>Asset Inventory For {{ facility }} On {{ date }}</h2>
+
+		<table BORDER="5">
+
+			<th ALIGN="CENTER">Asset Tag</th>
+			<th ALIGN="CENTER">Description</th>
+			<th ALIGN="CENTER">Arrived On</th>
+			<th ALIGN="CENTER">Expunged On</th>
+
+			{% for row in results %}
+			
+			<tr>
+
+			<td>{{ row[0] }}</td>
+			<td>{{ row[1] }}</td>
+			<td>{{ row[2] }}</td>
+			<td>{{ row[3] }}</td>
+				
+			</tr>
+
+			{% endfor %}
+
+		</table>
 
 		<form action="/logout" method="POST">
 			<input type="submit" value="Logout"/>

@@ -37,11 +37,18 @@ def facility():
         year = request.form["year"]
         datecheck = month + '/' + day + '/' + year
         facname = request.form["facility_name"]
+        cur.execute("SELECT common_name FROM facilities WHERE common_name LIKE (%s);", (facname+'%',))
+        factuple = cur.fetchall()
+        if len(factuple) != 0:
+            facname = factuple[0][0]
+        else:
+            facname = 'Did Not Work'
         cur.execute('''SELECT a.asset_tag, a.description, aa.arrive_dt, aa.depart_dt 
 FROM asset_at aa JOIN facilities f ON aa.facility_fk = f.facility_pk JOIN assets a ON 
 a.asset_pk = aa.asset_fk WHERE f.common_name = (%s) AND (((%s) BETWEEN aa.arrive_dt AND aa.depart_dt) 
 OR (((%s) >= aa.arrive_dt) AND (aa.depart_dt IS NULL)));''', (facname, datecheck, datecheck))
-        return render_template('facility_report.html')
+        infos = cur.fetchall()
+        return render_template('facility_report.html', results = infos, facility=facname, date=datecheck)
     else:
         return render_template('report_main.html')
 
