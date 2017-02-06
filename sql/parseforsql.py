@@ -155,7 +155,7 @@ with open('./osnap_legacy/MB005_inventory.csv', 'r') as f:
 			print(str.format("INSERT INTO assets (asset_tag) SELECT '{}' WHERE NOT EXISTS (SELECT asset_tag FROM assets WHERE asset_tag='{}');", row[0], row[0]))
 			print(str.format("UPDATE assets SET product_fk=(SELECT product_pk FROM products WHERE description='{}') WHERE asset_tag='{}';", row[1], row[0]))
 
-			print(str.format("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt, depart_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = '{}'),(SELECT facility_pk FROM facilities WHERE common_name='MB 005'), '12/7/15', '12/31/19');", row[0]))			
+			print(str.format("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = '{}'),(SELECT facility_pk FROM facilities WHERE common_name='MB 005'), '12/7/15');", row[0]))			
 		firstline = False
 f.close()
 
