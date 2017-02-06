@@ -24,11 +24,11 @@ def login():
 def report():
     if request.method == 'POST':
         username = request.form["uname"]
-        session['name'] = username
+        session['name'] = username  #start the session and link to username, will end when logout page is hit
         facquery = cur.execute("SELECT common_name FROM facilities;")
         faclist = []
         for result in cur:
-            faclist.append(result[0])
+            faclist.append(result[0]) #because psycopg2 SQL queries return lists of tuples, and I don't want to send a tuple to my html
         return render_template('report_main.html', faclist = faclist)
 
 @app.route('/facility_report', methods=['POST', 'GET'])
@@ -39,6 +39,7 @@ def facility():
         year = request.form["year"]
         datecheck = month + '/' + day + '/' + year
         facname = request.form["facility_name"]
+	#because the returned facname, if it had a space in it, is now truncated, I need the next 4 lines to retrieve the rest of the name
         cur.execute("SELECT common_name FROM facilities WHERE common_name LIKE (%s);", (facname+'%',))
         factuple = cur.fetchall()
         if len(factuple) != 0:
@@ -50,10 +51,10 @@ def facility():
 FROM asset_at aa JOIN facilities f ON aa.facility_fk = f.facility_pk JOIN assets a ON 
 a.asset_pk = aa.asset_fk WHERE f.common_name = (%s) AND (((%s) BETWEEN aa.arrive_dt AND aa.depart_dt) 
 OR (((%s) >= aa.arrive_dt) AND (aa.depart_dt IS NULL)));''', (facname, datecheck, datecheck))
-        infos = cur.fetchall()
+        infos = cur.fetchall() #elements are parsed in my html
         return render_template('facility_report.html', results = infos, facility=facname, date=datecheck)
     else:
-        return render_template('report_main.html')
+        return render_template('logout.html') #if something goes wrong, it's supposed to redirect to logout page
 
 @app.route('/transit_report', methods=['POST', 'GET'])
 def transit():
@@ -66,16 +67,16 @@ def transit():
 t.unload_dt FROM facilities f1 JOIN convoys c ON f1.facility_pk = c.source_fk JOIN facilities f2 ON 
 f2.facility_pk = c.dest_fk JOIN asset_on t ON t.convoy_fk = c.convoy_pk JOIN assets a ON a.asset_pk 
 = t.asset_fk WHERE (%s) BETWEEN t.load_dt AND t.unload_dt;''', (datecheck,))
-        infos = cur.fetchall()
+        infos = cur.fetchall() #elements are parsed in my html
         return render_template('transit_report.html', datecheck=datecheck, results = infos)
     else:
-        return render_template('report_main.html')
+        return render_template('logout.html') #if something goes wrong, it's supposed to redirect to logout page
 
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
     byeuser = session['name']
-    session.clear()
+    session.clear()  #ends session
     return render_template('logout.html', username = byeuser)
 
 
