@@ -2,7 +2,7 @@ curl https://classes.cs.uoregon.edu//17W/cis322/files/osnap_legacy.tar.gz > osna
 
 tar -xvzf osnap_legacy.tar.gz
 
-postgres -p $2
+psql -p $2
 
 python parseforsql.py > printresults.sql
 
