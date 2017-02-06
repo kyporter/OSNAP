@@ -14,7 +14,7 @@ cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)  ##Should create a 
 def index(): 
     return render_template('index.html') #FIXME: add link to login page to index.html?
 
-@app.route('/login')
+@app.route('/login', methods=['POST', 'GET'])
 def login():
     return render_template('login.html')
 
@@ -23,7 +23,11 @@ def report():
     if request.method == 'POST':
         username = request.form["uname"]
         session['name'] = username
-        return render_template('report_main.html')
+        facquery = cur.execute("SELECT common_name FROM facilities;")
+        faclist = []
+        for result in cur:
+            faclist.append(result[0])
+        return render_template('report_main.html', faclist = faclist)
 
 @app.route('/facility_report', methods=['POST', 'GET'])
 def facility():
