@@ -14,7 +14,7 @@ cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)  ##Should create a 
 
 @app.route('/')
 def index(): 
-    return render_template('index.html') #FIXME: add link to login page to index.html?
+    return render_template('login.html') 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
