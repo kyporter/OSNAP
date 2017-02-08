@@ -72,6 +72,9 @@ f2.facility_pk = c.dest_fk JOIN asset_on t ON t.convoy_fk = c.convoy_pk JOIN ass
     else:
         return render_template('logout.html') #if something goes wrong, it's supposed to redirect to logout page
 
+@app.route('/rest')
+def rest():
+    return render_template('rest.html')
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():

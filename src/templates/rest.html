@@ -1,0 +1,23 @@
+<http>
+	<body bgcolor="#ecefdc">
+		<h2>Available REST URIs:</h2>
+			<p><b>http://127.0.0.1:8080/rest/lost_key</b>: No values for request. The response 
+will be 'OK' or 'FAIL' and the LOST public key.</p>
+			<p><b>http://127.0.0.1:8080/rest/activate_user</b>: Reactivates LOST access for a user 
+or generates a new user account if needed. Request will be the username to activate. Response will indicate 'OK' for reactivation, 'NEW' for a 
+new account being created, or 'FAIL' for an already active user.</p>
+			<p><b>http://127.0.0.1:8080/rest/suspend_user</b>: Revokes access for a user. No 
+effect if user does not exist or does not have access. Request will be username to revoke. Response will be 'OK'.</p>
+			<p><b>http://127.0.0.1:8080/rest/list_products</b>: Returns a listing of all products 
+in LOST based on a filter criteria. Asset information will not be returned. Request is a vendor, description and compartments, one or 
+all of which may be empty strings and none of which are case-sensitive. Response is a json list containing 
+product information based on the filter information sent in the request.</p>
+			<p><b>http://127.0.0.1:8080/rest/add_products</b>: Adds products to LOST. Requests 
+will be treated atomically(all added or none added), adding a duplicate product causes the request to fail. Request is a json list describing the 
+new products, by fields vendor, description, alt_description and compartments. Response is 'OK' if all 
+products added or 'FAIL' if no products added.</p>
+			<p><b>http://127.0.0.1:8080/rest/add_asset</b>: Adds a new asset to LOST. The request 
+is a description of the asset with fields vendor, description, compartments, and facility code. Response is 'OK' if asset is added or 'FAIL' if 
+asset is not added.</p>
+	</body>
+</html>
