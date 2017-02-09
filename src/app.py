@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, session, redirect, url_for
 import psycopg2 
 import psycopg2.extras
 from config import dbname, dbhost, dbport  ##FROM dellsword/lost app.py
+import json
+
 
 
 app = Flask(__name__)
@@ -75,6 +77,20 @@ f2.facility_pk = c.dest_fk JOIN asset_on t ON t.convoy_fk = c.convoy_pk JOIN ass
 @app.route('/rest')
 def rest():
     return render_template('rest.html')
+
+@app.route('/rest/activate_user', methods=['POST'])
+def activate_user():
+    if request.method == 'POST' and 'arguments' in request.form:
+        req = json.loads(request.form['arguments'])
+        dat = dict()
+        dat['timestamp'] = req['timestamp']
+	##needs check for pre-existence
+        cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
+        conn.commit()
+        return render_template('logout.html', username = req['username'])
+    else:
+        return render_template('login.html')
+
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
