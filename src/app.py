@@ -84,13 +84,29 @@ def activate_user():
         req = json.loads(request.form['arguments'])
         dat = dict()
         dat['timestamp'] = req['timestamp']
-	##needs check for pre-existence
+	##needs check for pre-existence,validation note
         cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
         conn.commit()
-        return render_template('logout.html', username = req['username'])
+	#fix return to correct json file
+        return dat
     else:
-        return render_template('login.html')
+        return render_template('rest.html')
 
+
+@app.route('/rest/suspend_user', methods=['POST'])
+def suspend_user():
+    if request.method == 'POST' and 'arguments' in request.form:
+	#there may be an issue with this?
+        req = json.loads(request.form['arguments'])
+        dat = dict()
+        dat['timestamp'] = req['timestamp']
+        dat['result'] = 'OK'
+        cur.execute("UPDATE users SET active = FALSE WHERE username=(%s);", (req['username'],))
+        conn.commit()
+	#make sure is returning as correct json file
+        return render_template('login.html')
+    else:
+        return render_template('rest.html')
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
