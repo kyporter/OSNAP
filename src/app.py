@@ -3,7 +3,7 @@ import psycopg2
 import psycopg2.extras
 from config import dbname, dbhost, dbport, lost_pub  ##FROM dellsword/lost app.py
 import json
-
+from time import gmtime, strftime
 
 
 app = Flask(__name__)
@@ -130,7 +130,8 @@ def add_products():
 @app.route('/rest/lost_key', methods=['POST'])
 def lost_key():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
-        return jsonify(timestamp = "1234", result = "OK", key = lost_pub)
+    #ADD datetime real timestamp
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "OK", key = lost_pub)
     else:
         return jsonify(timestamp = "bad", result = "FAIL")
 
