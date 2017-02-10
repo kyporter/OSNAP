@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for 
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify 
 import psycopg2 
 import psycopg2.extras
 from config import dbname, dbhost, dbport  ##FROM dellsword/lost app.py
@@ -88,7 +88,7 @@ def activate_user():
         cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
         conn.commit()
 	#fix return to correct json file
-        return dat
+        return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
         return render_template('rest.html')
 
@@ -104,7 +104,25 @@ def suspend_user():
         cur.execute("UPDATE users SET active = FALSE WHERE username=(%s);", (req['username'],))
         conn.commit()
 	#make sure is returning as correct json file
-        return render_template('login.html')
+        return jsonify(timestamp = req['timestamp'], result = "OK")
+    else:
+        return render_template('rest.html')
+
+@app.route('/rest/add_products', methods=['POST'])
+def add_products():
+    if request.method == 'POST' and 'arguments' in request.form:
+        req = json.loads(request.form['arguments'])
+        #because all or none, will need to check if any product already in table before adding any
+        for arg in req['new_products']:
+            vend = arg['vendor']
+            desc = arg['description']
+            alt = arg['alt_description']
+            comps = arg['compartments']
+            cur.execute("INSERT INTO products (vendor, description, alt_description) VALUES ((%s), (%s), (%s));", 
+                (vend, desc, alt))
+            ##add insert into security_tags
+            conn.commit()
+        return render_template('rest.html')
     else:
         return render_template('rest.html')
 
