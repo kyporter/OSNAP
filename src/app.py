@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify 
 import psycopg2 
 import psycopg2.extras
-from config import dbname, dbhost, dbport  ##FROM dellsword/lost app.py
+from config import dbname, dbhost, dbport, lost_pub  ##FROM dellsword/lost app.py
 import json
 
 
@@ -80,7 +80,7 @@ def rest():
 
 @app.route('/rest/activate_user', methods=['POST'])
 def activate_user():
-    if request.method == 'POST' and 'arguments' in request.form:
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
         req = json.loads(request.form['arguments'])
         dat = dict()
         dat['timestamp'] = req['timestamp']
@@ -90,12 +90,12 @@ def activate_user():
 	#fix return to correct json file
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
-        return render_template('rest.html')
+        return jsonify(timestamp = "bad", result = "FAIL")
 
 
 @app.route('/rest/suspend_user', methods=['POST'])
 def suspend_user():
-    if request.method == 'POST' and 'arguments' in request.form:
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
 	#there may be an issue with this?
         req = json.loads(request.form['arguments'])
         dat = dict()
@@ -106,7 +106,7 @@ def suspend_user():
 	#make sure is returning as correct json file
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
-        return render_template('rest.html')
+        return jsonify(timestamp = "bad", result = "FAIL")
 
 @app.route('/rest/add_products', methods=['POST'])
 def add_products():
@@ -118,13 +118,21 @@ def add_products():
             desc = arg['description']
             alt = arg['alt_description']
             comps = arg['compartments']
-            cur.execute("INSERT INTO products (vendor, description, alt_description) VALUES ((%s), (%s), (%s));", 
-                (vend, desc, alt))
+            cannot_add = product_present(vend, desc, alt)
+            if not cannot_add:
+                create_add_sql(vend, desc, alt, comps)
             ##add insert into security_tags
             conn.commit()
         return render_template('rest.html')
     else:
         return render_template('rest.html')
+
+@app.route('/rest/lost_key', methods=['POST'])
+def lost_key():
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
+        return jsonify(timestamp = "1234", result = "OK", key = lost_pub)
+    else:
+        return jsonify(timestamp = "bad", result = "FAIL")
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
@@ -134,3 +142,20 @@ def goodbye():
 
 
 
+def product_present(vend, desc, alt):
+    cur.execute("SELECT * FROM products WHERE vendor = (%s) AND description = (%s) AND alt_description = (%s);", (vend, 
+desc, alt))
+    listing = cur.fetchall()
+    if listing == None:
+        return False
+    return True
+
+def create_add_sql(vend, desc, alt, comps):
+    cur.execute("INSERT INTO products (vendor, description, alt_description) VALUES ((%s), (%s), (%s));", 
+        (vend, desc, alt))
+    if comps != "":
+        sec_bits = comps.split(':')
+        cur.execute('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM 
+levels WHERE abbrv = (%s)), (SELECT compartment_pk FROM compartments WHERE abbrv = (%s)), (SELECT product_pk FROM products 
+WHERE vendor = (%s) AND description = (%s) AND alt_description = (%s)));''', (sec_bits[1], sec_bits[0], vend, desc, alt))
+#doesn't return, just adds executes to stack, waiting for commit (or not to commit)
