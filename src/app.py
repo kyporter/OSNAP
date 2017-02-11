@@ -85,12 +85,20 @@ def activate_user():
         dat = dict()
         dat['timestamp'] = req['timestamp']
 	##needs check for pre-existence,validation note
-        cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
-        conn.commit()
-	#fix return to correct json file
-        return jsonify(timestamp = req['timestamp'], result = "OK")
+        cur.execute("SELECT user_pk, active FROM users WHERE username = (%s);", (req['username'],))
+        user_id = cur.fetchall()
+        if user_id == []:
+            cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
+            conn.commit()
+            return jsonify(timestamp = req['timestamp'], result = "NEW")
+        elif user_id[0][1] == False:
+            cur.execute("UPDATE users SET active = TRUE WHERE username = (%s);", (req['username'],))
+            conn.commit()
+            return jsonify(timestamp = req['timestamp'], result = "OK")
+        else:
+            return jsonify(timestamp = req['timestamp'], result = "FAIL")
     else:
-        return jsonify(timestamp = "bad", result = "FAIL")
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
 
 
 @app.route('/rest/suspend_user', methods=['POST'])
@@ -106,11 +114,19 @@ def suspend_user():
 	#make sure is returning as correct json file
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
-        return jsonify(timestamp = "bad", result = "FAIL")
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
+
+@app.route('/rest/add_asset', methods=['POST'])
+def add_asset():
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
+        return jsonify(timestamp = req['timestamp'], result = "OK")
+    else:
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
+
 
 @app.route('/rest/add_products', methods=['POST'])
 def add_products():
-    if request.method == 'POST' and 'arguments' in request.form:
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
         req = json.loads(request.form['arguments'])
         #because all or none, will need to check if any product already in table before adding any
         for arg in req['new_products']:
@@ -126,6 +142,13 @@ def add_products():
         return render_template('rest.html')
     else:
         return render_template('rest.html')
+
+@app.route('/rest/list_products', methods=['POST'])
+def list_products():
+    if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
+        return jsonify(timestamp = req['timestamp'], result = "OK")
+    else:
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
 
 @app.route('/rest/lost_key', methods=['POST'])
 def lost_key():
