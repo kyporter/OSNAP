@@ -82,16 +82,15 @@ def rest():
 def activate_user():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
         req = json.loads(request.form['arguments'])
-        dat = dict()
-        dat['timestamp'] = req['timestamp']
-	##needs check for pre-existence,validation note
         cur.execute("SELECT user_pk, active FROM users WHERE username = (%s);", (req['username'],))
         user_id = cur.fetchall()
-        if user_id == []:
+##runs if username is not already in database
+        if user_id == []:  
             cur.execute("INSERT INTO users (username, active) VALUES ((%s), TRUE);", (req['username'],))
             conn.commit()
             return jsonify(timestamp = req['timestamp'], result = "NEW")
-        elif user_id[0][1] == False:
+##runs if username in database but inactive
+        elif user_id[0][1] == False: 
             cur.execute("UPDATE users SET active = TRUE WHERE username = (%s);", (req['username'],))
             conn.commit()
             return jsonify(timestamp = req['timestamp'], result = "OK")
@@ -104,14 +103,9 @@ def activate_user():
 @app.route('/rest/suspend_user', methods=['POST'])
 def suspend_user():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
-	#there may be an issue with this?
         req = json.loads(request.form['arguments'])
-        dat = dict()
-        dat['timestamp'] = req['timestamp']
-        dat['result'] = 'OK'
         cur.execute("UPDATE users SET active = FALSE WHERE username=(%s);", (req['username'],))
         conn.commit()
-	#make sure is returning as correct json file
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
         return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
@@ -129,19 +123,30 @@ def add_products():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
         req = json.loads(request.form['arguments'])
         #because all or none, will need to check if any product already in table before adding any
+        prods_list = []
+        keep_adding = True
         for arg in req['new_products']:
-            vend = arg['vendor']
-            desc = arg['description']
-            alt = arg['alt_description']
-            comps = arg['compartments']
-            cannot_add = product_present(vend, desc, alt)
-            if not cannot_add:
-                create_add_sql(vend, desc, alt, comps)
+            if keep_adding:
+                vend = arg['vendor']
+                desc = arg['description']
+                alt = arg['alt_description']
+                comps = arg['compartments']
+                keep_adding = product_notin(vend, desc, alt)
+                if keep_adding:
+##if product wasn't already in database, an execute line is added to the commit stack
+                    add_sql(prods_list, vend, desc, alt, comps)
             ##add insert into security_tags
+##FIXME ugly looping
+##if no products are duplicates, insert statements will be executed
+        if keep_adding:
+            for sql in prods_list:
+                cur.execute(sql)
             conn.commit()
-        return render_template('rest.html')
-    else:
-        return render_template('rest.html')
+            return jsonify(timestamp = req['timestamp'], result = "OK")
+##otherwise FAIL is returned without affecting the database
+        return jsonify(timestamp = req['timestamp'], result = "FAIL")
+    else:            
+        return jsonify(timestamp = req['timestamp'], result = "FAIL")
 
 @app.route('/rest/list_products', methods=['POST'])
 def list_products():
@@ -153,10 +158,9 @@ def list_products():
 @app.route('/rest/lost_key', methods=['POST'])
 def lost_key():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
-    #ADD datetime real timestamp
         return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "OK", key = lost_pub)
     else:
-        return jsonify(timestamp = "bad", result = "FAIL")
+        return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
 
 @app.route('/logout', methods=['POST', 'GET'])
 def goodbye():
@@ -166,20 +170,18 @@ def goodbye():
 
 
 
-def product_present(vend, desc, alt):
-    cur.execute("SELECT * FROM products WHERE vendor = (%s) AND description = (%s) AND alt_description = (%s);", (vend, 
-desc, alt))
+def product_notin(vend, desc, alt):
+    cur.execute("SELECT product_pk FROM products WHERE vendor = (%s) AND description = (%s) AND alt_description = (%s);", (vend, desc, alt))
     listing = cur.fetchall()
-    if listing == None:
-        return False
-    return True
+##If product doesn't already exist, listing will be an empty list and the function will return true
+    if listing == []:
+        return True
+    return False
 
-def create_add_sql(vend, desc, alt, comps):
+def add_sql(prods, vend, desc, alt, comps):
     cur.execute("INSERT INTO products (vendor, description, alt_description) VALUES ((%s), (%s), (%s));", 
         (vend, desc, alt))
     if comps != "":
         sec_bits = comps.split(':')
-        cur.execute('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM 
-levels WHERE abbrv = (%s)), (SELECT compartment_pk FROM compartments WHERE abbrv = (%s)), (SELECT product_pk FROM products 
-WHERE vendor = (%s) AND description = (%s) AND alt_description = (%s)));''', (sec_bits[1], sec_bits[0], vend, desc, alt))
+        prods.append(string.format('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv = {}), (SELECT compartment_pk FROM compartments WHERE abbrv = {}), (SELECT product_pk FROM products WHERE vendor = {} AND description = (%s) AND alt_description = {}));''', (sec_bits[1], sec_bits[0], vend, desc, alt)))
 #doesn't return, just adds executes to stack, waiting for commit (or not to commit)
