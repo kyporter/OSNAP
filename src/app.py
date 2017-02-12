@@ -122,6 +122,15 @@ def add_asset():
         conn.commit()
         cur.execute("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE description = (%s)), (SELECT facility_pk FROM facilities WHERE fcode = (%s)), (%s));", (desc, fac, strftime("%Y-%m-%d %H:%M:%S", gmtime())))
         conn.commit()
+        if comps != '':
+            comp_bits = comps.split(':')
+            level = comp_bits[1]
+            compartment = comp_bits[0]
+            cur.execute('''INSERT INTO security_tags (level_fk, compartment_fk, asset_fk) VALUES ((SELECT level_pk FROM 
+levels WHERE abbrv = (%s)), (SELECT compartment_pk FROM compartments WHERE abbrv = (%s)), (SELECT asset_pk FROM assets JOIN 
+asset_at ON assets.asset_pk = asset_at.asset_fk JOIN facilities ON asset_at.facility_fk = facilities.facility_pk WHERE 
+assets.description = (%s) and facilities.fcode = (%s)));''', (level, compartment, desc, fac))
+            conn.commit()
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
         return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
@@ -140,6 +149,10 @@ def add_products():
                 desc = arg['description']
                 alt = arg['alt_description']
                 comps = arg['compartments']
+                if comps != []:   
+                    comp_bits = comps[0].split(':')
+                    level = comp_bits[1]
+                    compartment = comp_bits[0]
                 keep_adding = product_notin(vend, desc, alt)
                 if keep_adding:
 ##if product wasn't already in database, an execute line is added to the commit stack
