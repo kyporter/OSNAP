@@ -113,6 +113,15 @@ def suspend_user():
 @app.route('/rest/add_asset', methods=['POST'])
 def add_asset():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
+        req = json.loads(request.form['arguments'])
+        vend = req['vendor']
+        desc = req['description']
+        comps = req['compartments']
+        fac = req['facility']
+        cur.execute("INSERT INTO assets (description) VALUES (%s);", (desc,))
+        conn.commit()
+        cur.execute("INSERT INTO asset_at (asset_fk, facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE description = (%s)), (SELECT facility_pk FROM facilities WHERE fcode = (%s)), (%s));", (desc, fac, strftime("%Y-%m-%d %H:%M:%S", gmtime())))
+        conn.commit()
         return jsonify(timestamp = req['timestamp'], result = "OK")
     else:
         return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
@@ -151,7 +160,30 @@ def add_products():
 @app.route('/rest/list_products', methods=['POST'])
 def list_products():
     if request.method == 'POST' and 'arguments' in request.form and 'signature' in request.form:
-        return jsonify(timestamp = req['timestamp'], result = "OK")
+        req = json.loads(request.form['arguments'])
+        vend = str(req['vendor'])
+        vend = '%' + vend + '%'
+        desc = str(req['description'])
+        desc = '%' + desc + '%'
+        comps = req['compartments']
+        print(comps)
+        if comps != []:
+            comp_bits = comps[0].split(':')
+            level = comp_bits[1]
+            compartment = comp_bits[0]
+            cur.execute('''SELECT p.vendor, p.description FROM products p JOIN security_tags 
+s ON p.product_pk=s.product_fk WHERE s.compartment_fk=(SELECT compartment_pk FROM compartments 
+WHERE abbrv = (%s)) AND s.level_fk = (SELECT level_pk FROM levels WHERE abbrv = (%s)) and 
+p.vendor LIKE (%s) and p.description LIKE (%s);''', (compartment, level, vend, desc)) 
+            listings = cur.fetchall()
+        else:
+            cur.execute("SELECT vendor, description FROM products WHERE vendor LIKE (%s) and description LIKE (%s);", (vend, desc))
+            listings = cur.fetchall()
+        json_listify = []
+        for info in listings:
+            result = {"vendor" : info[0], "description" : info[1], "compartments" : req['compartments']}
+            json_listify.append(result)
+        return jsonify(timestamp = req['timestamp'], listing = json.dumps(json_listify))
     else:
         return jsonify(timestamp = strftime("%Y-%m-%d %H:%M:%S", gmtime()), result = "FAIL")
 
@@ -185,3 +217,14 @@ def add_sql(prods, vend, desc, alt, comps):
         sec_bits = comps.split(':')
         prods.append(string.format('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv = {}), (SELECT compartment_pk FROM compartments WHERE abbrv = {}), (SELECT product_pk FROM products WHERE vendor = {} AND description = (%s) AND alt_description = {}));''', (sec_bits[1], sec_bits[0], vend, desc, alt)))
 #doesn't return, just adds executes to stack, waiting for commit (or not to commit)
+
+def add_sectag_sql(comps, types, items):
+    sec_bits = comps.split(':')
+    if types == 'product':
+        items.append(string.format('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv = {}), (SELECT compartment_pk FROM compartments WHERE abbrv = {}), (SELECT product_pk FROM products WHERE vendor = {} AND description = (%s) AND alt_description = {}));''', (sec_bits[1], sec_bits[0], vend, desc, alt)))
+    elif types == 'asset':
+        items.append(string.format('''INSERT INTO security_tags (level_fk, compartment_fk, 
+asset_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv = {}), (SELECT compartment_pk FROM 
+compartments WHERE abbrv = {}), (SELECT asset_pk FROM products WHERE vendor = {} AND 
+description = (%s) AND alt_description = {}));''', (sec_bits[1], sec_bits[0], vend, desc, alt)))
+
