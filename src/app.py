@@ -149,20 +149,12 @@ def add_products():
                 desc = arg['description']
                 alt = arg['alt_description']
                 comps = arg['compartments']
-                if comps != []:   
-                    comp_bits = comps[0].split(':')
-                    level = comp_bits[1]
-                    compartment = comp_bits[0]
                 keep_adding = product_notin(vend, desc, alt)
                 if keep_adding:
 ##if product wasn't already in database, an execute line is added to the commit stack
                     add_sql(prods_list, vend, desc, alt, comps)
-            ##add insert into security_tags
-##FIXME ugly looping
 ##if no products are duplicates, insert statements will be executed
         if keep_adding:
-            for sql in prods_list:
-                cur.execute(sql)
             conn.commit()
             return jsonify(timestamp = req['timestamp'], result = "OK")
 ##otherwise FAIL is returned without affecting the database
@@ -228,7 +220,9 @@ def add_sql(prods, vend, desc, alt, comps):
         (vend, desc, alt))
     if comps != "":
         sec_bits = comps.split(':')
-        prods.append(string.format('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels WHERE abbrv = {}), (SELECT compartment_pk FROM compartments WHERE abbrv = {}), (SELECT product_pk FROM products WHERE vendor = {} AND description = (%s) AND alt_description = {}));''', (sec_bits[1], sec_bits[0], vend, desc, alt)))
+        cur.execute('''INSERT INTO security_tags (level_fk, compartment_fk, product_fk) VALUES ((SELECT level_pk FROM levels 
+WHERE abbrv = (%s)), (SELECT compartment_pk FROM compartments WHERE abbrv = (%s)), (SELECT product_pk FROM products WHERE vendor 
+= (%s) AND description = (%s) AND alt_description = (%s)));''', (sec_bits[1], sec_bits[0], vend, desc, alt))
 #doesn't return, just adds executes to stack, waiting for commit (or not to commit)
 
 def add_sectag_sql(comps, types, items):
