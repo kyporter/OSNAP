@@ -6,7 +6,7 @@
 	},
 	"crypto": {
 		"lost_priv": "/osnap/keys/lost.priv",
-		"lost_pub": "/osnap/keys/lost.pub",
+		"lost_pub": "home/osnapdev/wsgi/lost.pub",
 		"user_pub": "/osnap/keys/user.pub",
 		"prod_pub": "/osnap/keys/prod.pub"
 	},
