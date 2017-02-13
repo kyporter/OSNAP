@@ -2,7 +2,8 @@
 file that doesn't exist for lost_pub, it will raise an error. After running preflight.sh, there 
 will be a lost.pub file in src that by default lost_config.json is pointing to.
 
-All database-related API calls will interact with the database
+All database-related API calls will interact with the database, I recommend running activate_user to add user(s) 
+to database before running suspend_user
 
 app.py : makes things work with wsgi
 config.py: reads in data from lost_config.json, translates it to python variables
