@@ -1,3 +1,5 @@
+**IMPORTANT! config.py reads in from lost_pub key file: if lost_config.json is pointing to a file that doesn't exist for lost_pub, it will raise an error.
+
 app.py : makes things work with wsgi
 config.py: reads in data from lost_config.json, translates it to python variables
 lost_config.json: stores configuration information
