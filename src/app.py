@@ -39,7 +39,7 @@ def login():
         pword = request.form['password']
         cur.execute("SELECT active FROM users WHERE username=(%s) and password=(%s);", (uname, pword))
         result = cur.fetchone()
-        if result != [] and result[0] == True:
+        if result != None and result[0] == True:
             session['name'] = uname
             return redirect("/dashboard")
         else:
