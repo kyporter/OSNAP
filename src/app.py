@@ -12,7 +12,7 @@ cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect("/login")
 
 @app.route("/create_user", methods=['POST', 'GET'])
 def create_user():
@@ -40,9 +40,13 @@ def login():
         cur.execute("SELECT active FROM users WHERE username=(%s) and password=(%s);", (uname, pword))
         result = cur.fetchone()
         if result != [] and result[0] == True:
-        ##FIXME: if no session, remove
             session['name'] = uname
             return redirect("/dashboard")
-            ##redirect to dashboard
         else:
             return render_template('login_fail.html')
+
+@app.route("/dashboard", methods=['GET'])
+def dashboard():
+    if request.method == 'GET':
+        uname = session['name']
+        return render_template('dashboard.html', username = uname)
