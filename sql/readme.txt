@@ -1,2 +1,2 @@
 create_tables.sql : SQL script to create datamodel-related tables for the LOST database; 
-currently creates table 'users' which stores username, password, and active/inactive status
+currently creates table 'users' which stores unique username, password, and active/inactive status, indexed by user_pk
