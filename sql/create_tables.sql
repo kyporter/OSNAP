@@ -24,7 +24,7 @@ PRIMARY KEY(asset_pk));
 
 CREATE TABLE facilities(
 facility_pk serial,
-common_name varchar(50), 
+common_name varchar(32), 
 fac_code varchar(6),
 PRIMARY KEY(facility_pk));
 

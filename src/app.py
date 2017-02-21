@@ -19,12 +19,15 @@ def create_user():
     if request.method == 'GET':
         return render_template('create_user.html')
     elif request.method == 'POST':
+        role_dict = {'Facilities' : 'Facilities Officer', 'Logistics' : 'Logistics Officer'}
         uname = request.form['username']
         pword = request.form['password']
+        role_short = request.form['role']
+        role = role_dict[role_short]
         cur.execute("SELECT password FROM users WHERE username = (%s);", (uname,))
         exist = cur.fetchall()
         if exist == []:
-            cur.execute("INSERT INTO users (username, password) VALUES ((%s), (%s));", (uname, pword))
+            cur.execute("INSERT INTO users (username, password, role_Fk) VALUES ((%s), (%s), (SELECT role_pk FROM roles WHERE title = (%s)));", (uname, pword, role))
             conn.commit()
             return render_template('c_user_success.html', username = uname)
         else:
