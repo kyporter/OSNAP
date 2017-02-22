@@ -1,0 +1,34 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<table>
+			<th ALIGN = "CENTER">Asset Tag</th>
+			<th ALIGN = "CENTER">Description</th>
+
+			{% for asset in assets %}
+
+			<tr>
+			<td>{{ asset[0] }}</td>
+			<td>{{ asset[1] }}</td>
+			</tr>
+
+			{% endfor %}
+		</table>
+		<form action="add_asset" method="POST">
+			<label><b>Asset Tag:</b></label>
+			<input type="text" name="tag" maxlength="16" required />
+			<label><b>Description:</b></label>
+			<input type="text" name="desc" required />
+			<label><b>Asset Location: </b></label>
+			<select name = "fac_code" required>
+			
+			{% for facility in faclist %}
+			<option value = {{ facility[1] }}>{{ facility[0] }}</option>
+			{% endfor %}
+
+			</select>
+			<label><b>Intake Date</b></label>
+			<input type="date" name="intake" required />
+			<input type="submit" value="Add Asset" />
+		</form>
+	</body>
+</html>

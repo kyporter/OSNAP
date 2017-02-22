@@ -69,6 +69,31 @@ def add_facility():
         else:
             return render_template("add_fac_fail.html", c_name=com_name)
 
+@app.route("/add_asset", methods=['GET', 'POST'])
+def add_asset():
+    if request.method == 'GET':
+        cur.execute("SELECT asset_tag, description FROM assets;")
+        asset_list = cur.fetchall() #is a list of lists: each item[0] is a tag, each item[1] is a descripiton
+        cur.execute("SELECT common_name, fac_code FROM facilities;")
+        fac_list = cur.fetchall() 
+        return render_template('add_asset.html', assets = asset_list, faclist = fac_list)
+    if request.method == 'POST':
+        a_tag = request.form['tag']
+        desc = request.form['desc']
+        fcode = request.form['fac_code']
+        a_date = request.form['intake']
+        cur.execute("SELECT asset_pk FROM assets WHERE asset_tag = (%s);", (a_tag,))
+        if cur.fetchone() == None:
+            cur.execute("INSERT INTO assets (asset_tag, description) VALUES ((%s), (%s));", (a_tag, desc))
+            cur.execute('''INSERT INTO asset_history (asset_fk, 
+facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE 
+asset_tag = (%s)), (SELECT facility_pk FROM facilities WHERE fac_code 
+= (%s)), (%s));''', (a_tag, fcode, a_date))
+            conn.commit()
+            return redirect('/add_asset')
+        else:
+            return render_template("add_ast_fail.html", asset=a_tag)
+
 @app.route("/logout", methods=['GET'])
 def logout():
     if request.method == 'GET':
