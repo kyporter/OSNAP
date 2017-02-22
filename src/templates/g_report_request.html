@@ -1,0 +1,16 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<form action='/asset_report' method='POST'>
+			<label><b>Facility(leave blank for all)</b></label>
+			<select name = "fac_code">
+			<option></option>
+		--facility[0] is common name, facility[1] is code
+			{% for facility in faclist %}
+			<option value = {{ facility[1] }}>{{ facility[0] }}</option>
+			{% endfor %}
+			<label><b>Date of Interest:</b></label>
+			<input type="date" name="r_date" required />
+			<input type="submit" value = "Request Report" />
+		</form>
+	</body>
+</html>

@@ -128,6 +128,31 @@ def dispose_asset():
     else:
         return render_template("LO_only.html")    
 
+@app.route("/asset_report", methods=['GET', 'POST'])
+def asset_report():
+    cur.execute("SELECT common_name, fac_code FROM facilities;")
+    fac_list = cur.fetchall()
+    if request.method == 'GET':
+        return render_template('g_report_request.html', faclist = fac_list)
+    if request.method == 'POST':
+        fac_code = request.form['fac_code']
+        r_date = request.form['r_date']
+    #Does blank option return None?
+        if fac_code != '':
+            cur.execute('''SELECT a.asset_tag, a.description, f.common_name, 
+ah.arrive_dt, ah.depart_dt FROM assets a JOIN asset_history ah ON a.asset_pk = 
+ah.asset_fk JOIN facilities f ON f.facility_pk = ah.facility_fk WHERE f.fac_code = (%s) AND (((%s) 
+BETWEEN ah.arrive_dt AND ah.depart_dt) OR (((%s) >= ah.arrive_dt) AND 
+ah.depart_dt IS NULL));''', (fac_code, r_date, r_date))
+        else:
+            cur.execute('''SELECT a.asset_tag, a.description, f.common_name, 
+ah.arrive_dt, ah.depart_dt FROM assets a JOIN asset_history ah ON a.asset_pk = 
+ah.asset_fk JOIN facilities f ON f.facility_pk = ah.facility_fk WHERE (((%s) 
+BETWEEN ah.arrive_dt AND ah.depart_dt) OR (((%s) >= ah.arrive_dt) AND 
+ah.depart_dt IS NULL));''', (r_date, r_date))
+        results = cur.fetchall()
+    #Each item in results: item[0]:tag, item[1]:desc, item[2]:fac common, item[3]:arrival, item[4]:departure        
+        return render_template('p_report_request.html', faclist = fac_list, results = results)
 
 @app.route("/logout", methods=['GET'])
 def logout():
