@@ -94,6 +94,41 @@ asset_tag = (%s)), (SELECT facility_pk FROM facilities WHERE fac_code
         else:
             return render_template("add_ast_fail.html", asset=a_tag)
 
+@app.route("/dispose_asset", methods=['GET', 'POST'])
+def dispose_asset():
+    user = session['name']
+    cur.execute("SELECT title FROM roles JOIN users ON role_pk = role_fk WHERE username = (%s);", (user,))
+    role = cur.fetchone()[0]
+    if role == 'Logistics Officer':
+        if request.method == 'GET':
+            return render_template('disposal_form.html')
+        if request.method == 'POST':
+            a_tag = request.form['tag']
+            d_date = request.form['date_disp']
+            cur.execute("SELECT asset_pk FROM assets WHERE asset_tag = (%s);", (a_tag,))
+            a_pk = cur.fetchone()[0]
+    #check if asset exists
+            if a_pk != None:
+    #find current facility(if depart_dt is Null, asset is still 'there'
+                cur.execute("SELECT facility_fk FROM asset_history WHERE asset_fk = (%s) AND depart_dt IS NULL;", (a_pk,)) 
+                location = cur.fetchone()[0]
+    #check if asset has already been disposed of
+                if location != None: #if location is None, asset is already disposed of
+                    cur.execute("UPDATE asset_history SET depart_dt = (%s) WHERE asset_fk = (%s) AND facility_fk = (%s) AND depart_dt IS NULL;", (d_date, a_pk, location))
+                    cur.execute("INSERT INTO asset_history (asset_fk, arrive_dt) VALUES ((%s), (%s));", (a_pk, d_date))
+                    conn.commit()
+                    return redirect('/dispose_asset')
+    #if asset is already disposed:
+                else:
+                    return render_template("already_disposed.html", asset=a_tag)
+    #if asset doesn't exist:
+            else:
+                return render_template("no_asset.html", asset=a_tag)
+    #if current user is not a logistics officer:
+    else:
+        return render_template("LO_only.html")    
+
+
 @app.route("/logout", methods=['GET'])
 def logout():
     if request.method == 'GET':

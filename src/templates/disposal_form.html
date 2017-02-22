@@ -1,0 +1,17 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<form action='/dispose_asset' method = "POST">
+			<label><b>Asset Tag:</b></label>
+			<input type="text" name="tag" maxlength="16" required />
+			<label><b>Date Disposed Of:</b></label>
+			<input type='date' name="date_disp" required />
+			<input type="submit" value="Dispose of Asset" />
+		</form>
+		<form action='/dashboard' method = 'GET'>
+			<input type="submit" value="Go to Dashboard" />
+		</form>
+		<form action='/logout' method = 'GET'>
+			<input type="submit" value="End Session" />
+		</form>
+	</body>
+</html>
