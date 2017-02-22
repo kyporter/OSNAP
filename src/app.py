@@ -19,11 +19,9 @@ def create_user():
     if request.method == 'GET':
         return render_template('create_user.html')
     elif request.method == 'POST':
-        role_dict = {'Facilities' : 'Facilities Officer', 'Logistics' : 'Logistics Officer'}
         uname = request.form['username']
         pword = request.form['password']
-        role_short = request.form['role']
-        role = role_dict[role_short]
+        role = request.form['role']
         cur.execute("SELECT password FROM users WHERE username = (%s);", (uname,))
         exist = cur.fetchall()
         if exist == []:
@@ -52,4 +50,28 @@ def login():
 def dashboard():
     if request.method == 'GET':
         uname = session['name']
-        return render_template('dashboard.html', username = uname)
+        cur.execute("SELECT title FROM roles JOIN users ON role_pk = role_fk WHERE username=(%s);", (uname,))
+        role = cur.fetchone()[0]
+        return render_template('dashboard.html', username = uname, role = role)
+
+@app.route("/add_facility", methods=['GET', 'POST'])
+def add_facility():
+    if request.method == 'GET':
+        return render_template('add_facility.html')
+    if request.method == 'POST':
+        com_name = request.form['common']
+        fcode = request.form['fcode']
+        cur.execute("SELECT facility_pk FROM facilities WHERE fac_code = (%s) or common_name = (%s);", (fcode, com_name))
+        if cur.fetchall() == []:
+            cur.execute("INSERT INTO facilities (fac_code, common_name) VALUES ((%s), (%s));", (fcode, com_name))
+            conn.commit()
+            return redirect("/add_facility")
+        else:
+            return render_template("add_fac_fail.html", c_name=com_name)
+
+@app.route("/logout", methods=['GET'])
+def logout():
+    if request.method == 'GET':
+        uname = session['name']
+        session.clear() #ends session
+        return render_template("logout.html", username=uname)
