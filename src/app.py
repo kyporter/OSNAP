@@ -48,11 +48,20 @@ def login():
 
 @app.route("/dashboard", methods=['GET'])
 def dashboard():
+    #candispose as an empty list will prevent a button from appearing on 
+    #page linking to dispose_asset; candispose with one element will 
+    #display button linking to dispose_asset
+    candispose = []
+    user = session['name']
+    cur.execute("SELECT title FROM roles JOIN users ON role_pk = role_fk WHERE username = (%s);", (user,))
+    role = cur.fetchone()[0]
+    if role == 'Logistics Officer':
+        candispose.append(True)
     if request.method == 'GET':
         uname = session['name']
         cur.execute("SELECT title FROM roles JOIN users ON role_pk = role_fk WHERE username=(%s);", (uname,))
         role = cur.fetchone()[0]
-        return render_template('dashboard.html', username = uname, role = role)
+        return render_template('dashboard.html', username = uname, role = role, displaybutton = candispose)
 
 @app.route("/add_facility", methods=['GET', 'POST'])
 def add_facility():
@@ -106,9 +115,10 @@ def dispose_asset():
             a_tag = request.form['tag']
             d_date = request.form['date_disp']
             cur.execute("SELECT asset_pk FROM assets WHERE asset_tag = (%s);", (a_tag,))
-            a_pk = cur.fetchone()[0]
+            a_pk = cur.fetchone()
     #check if asset exists
             if a_pk != None:
+                a_pk = a_pk[0]
     #find current facility(if depart_dt is Null, asset is still 'there'
                 cur.execute("SELECT facility_fk FROM asset_history WHERE asset_fk = (%s) AND depart_dt IS NULL;", (a_pk,)) 
                 location = cur.fetchone()[0]
