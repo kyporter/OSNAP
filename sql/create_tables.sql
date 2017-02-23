@@ -34,12 +34,6 @@ facility_fk integer,
 arrive_dt timestamp NOT NULL,
 depart_dt timestamp);
 
---Making for now, may delete later
-CREATE TABLE asset_at(
-asset_fk integer NOT NULL,
-facility_fk integer,
-intake timestamp NOT NULL);
-
 --Because two roles are assumed to exist:
 INSERT INTO roles (title, description) VALUES ('Logistics Officer', 'May dispose 
 of assets');
