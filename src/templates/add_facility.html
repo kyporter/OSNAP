@@ -1,5 +1,18 @@
 <html>
 	<body BGCOLOR="#ecefdc">
+		<table>
+			<th ALIGN = "CENTER">Common Name</th>
+			<th ALIGN = "CENTER">Facility Code</th>
+
+			{% for facility in faclist %}
+
+			<tr>
+			<td>{{ facility[0] }}</td>
+			<td>{{ facility[1] }}</td>
+			</tr>
+
+			{% endfor %}
+		</table>
 		<form action="/add_facility" method="POST">
 			<label><b>Facility's Common Name:</b></label>
 			<input type="text" name="common" required />
