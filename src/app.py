@@ -65,8 +65,10 @@ def dashboard():
 
 @app.route("/add_facility", methods=['GET', 'POST'])
 def add_facility():
+    cur.execute("SELECT common_name, fac_code FROM facilities;")
+    fac_list = cur.fetchall()   
     if request.method == 'GET':
-        return render_template('add_facility.html')
+        return render_template('add_facility.html', faclist = fac_list)
     if request.method == 'POST':
         com_name = request.form['common']
         fcode = request.form['fcode']
@@ -114,7 +116,7 @@ def dispose_asset():
         if request.method == 'POST':
             a_tag = request.form['tag']
             d_date = request.form['date_disp']
-            cur.execute("SELECT asset_pk FROM assets WHERE asset_tag = (%s);", (a_tag,))
+            cur.execute("SELECT asset_pk FROM assets JOIN asset_history ON asset_pk = asset_fk WHERE asset_tag = (%s) AND arrive_dt < (%s);", (a_tag, d_date))
             a_pk = cur.fetchone()
     #check if asset exists
             if a_pk != None:
