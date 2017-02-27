@@ -3,5 +3,28 @@
 		<h2>
 			Welcome to {{ username }}'s Dashboard!
 		</h2>
+		<h2>
+			You are a {{ role }}.
+		</h2>
+		<form action="/add_facility" method='GET'>
+			<input type="submit" value="Go to Add Facility page" />
+		</form>
+		<form action="/add_asset" method='GET'>
+			<input type="submit" value="Go to Add Asset page" />
+		</form>
+		<form action="/asset_report" method='GET'>
+			<input type="submit" value="Go to Asset Report page" />
+		</form>
+
+<!--this is a cheat to avoid using JavaScript: displaybutton is an empty list if user is not a logistics officer-->
+		{% for item in displaybutton %}
+		<form action="/dispose_asset" method='GET'>
+			<input type="submit" value="Go to Asset Disposal Page" />
+		</form>
+		{% endfor %}
+
+		<form action="/logout" method='GET'>
+			<input type="submit" value="End Session" />
+		</form>
 	<body>
 </html>

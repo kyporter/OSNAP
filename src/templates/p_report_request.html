@@ -1,0 +1,39 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<form action='/asset_report' method='POST'>
+			<label><b>Facility(leave blank for all)</b></label>
+			<select name = "fac_code">
+			<option></option>
+		--facility[0] is common name, facility[1] is code
+			{% for facility in faclist %}
+			<option value = {{ facility[1] }}>{{ facility[0] }}</option>
+			{% endfor %}
+			<label><b>Date of Interest:</b></label>
+			<input type="date" name="r_date" required />
+			<input type="submit" value = "Request Report" />
+		</form>
+		<table BORDER="5">
+			<th ALIGN="CENTER">Asset Tag</th>
+			<th ALIGN="CENTER">Description</th>
+			<th ALIGN="CENTER">Facility</th>
+			<th ALIGN="CENTER">Arrival Date</th>
+			<th ALIGN="CENTER">Departure/Disposal Date</th>
+
+			{% for row in results %}
+			<tr>
+				<td>{{ row[0] }}</td>
+				<td>{{ row[1] }}</td>
+				<td>{{ row[2] }}</td>
+				<td>{{ row[3] }}</td>
+				<td>{{ row[4] }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<form action='/dashboard' method='GET'>
+			<input type='submit' value='Go to Dashboard' />
+		</form>
+		<form action='/logout' method='GET'>
+			<input type='submit' value='End Session' />
+		</form>
+	</body>
+</html>
