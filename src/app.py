@@ -189,7 +189,7 @@ asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_p
 WHERE facility_fk IS NOT NULL and depart_dt IS NULL;''')
         assets = cur.fetchall()
         fac_list = getFacList()
-        return render_template('transfer_req.html', fac_list = fac_list, asset_list=assets)
+        return render_template('transfer_req.html', faclist = fac_list, asset_list=assets)
 
     if request.method == 'POST':
         dest = request.form['des_code']
@@ -205,7 +205,7 @@ NULL and asset_tag=(%s);''', (a_tag,))
 destination, requester, req_time) VALUES ((SELECT asset_pk FROM assets WHERE 
 asset_tag=(%s)), (SELECT facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT 
 facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT user_pk FROM users WHERE 
-username=(%s)), (%s));''', (a_tag, src_code, dest, session['username'], today))
+username=(%s)), (%s));''', (a_tag, src_code, dest, session['name'], today))
         conn.commit()
         return render_template("request_made.html", a_tag=a_tag, fac_src=src_code, fac_dest = dest)
 
