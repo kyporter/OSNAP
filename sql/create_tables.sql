@@ -34,6 +34,24 @@ facility_fk integer,
 arrive_dt timestamp NOT NULL,
 depart_dt timestamp);
 
+CREATE TABLE transfer_requests(
+request_pk serial,
+requester integer REFERENCES users,
+req_time timestamp,
+source integer REFERENCES facilities,
+destination integer REFERENCES facilities,
+asset_fk integer,
+approver integer REFERENCES users,
+app_time timestamp,
+PRIMARY KEY(request_pk));
+
+CREATE TABLE in_transit(
+load_dt timestamp,
+unload_dt timestamp,
+sets_load integer REFERENCES users,
+sets_unload integer REFERENCES users,
+request_fk integer);
+
 --Because two roles are assumed to exist:
 INSERT INTO roles (title, description) VALUES ('Logistics Officer', 'May dispose 
 of assets');
