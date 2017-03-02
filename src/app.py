@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for
 import psycopg2
 import psycopg2.extras
 from config import dbname, dbhost, dbport
+from time import gmtime, strftime
 
 app = Flask(__name__)
 app.secret_key = "wecanpretendthisisarandomkeyright?" #so that session works
@@ -176,6 +177,37 @@ ah.depart_dt IS NULL));''', (r_date, r_date))
             return render_template('p_report_request.html', faclist = fac_list, results = results)
         else:
             return redirect("/asset_report")
+
+@app.route("/transfer_req", methods=['GET', 'POST'])
+def transfer_req():
+    if session['role'] != 'Logistics Officer':
+        return render_template('LO_only.html', page = 'Transfer Requests')
+    
+    if request.method == 'GET':
+        cur.execute('''SELECT asset_tag, common_name FROM assets JOIN 
+asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_pk 
+WHERE facility_fk IS NOT NULL and depart_dt IS NULL;''')
+        assets = cur.fetchall()
+        fac_list = getFacList()
+        return render_template('transfer_req.html', fac_list = fac_list, asset_list=assets)
+
+    if request.method == 'POST':
+        dest = request.form['des_code']
+        today = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        a_tag = request.form['tag']
+
+    ##Get facility code for asset's current location
+        cur.execute('''SELECT fac_code FROM assets JOIN asset_history ON 
+asset_pk=asset_fk JOIN facilities ON facility_pk=facility_fk WHERE depart_dt IS         
+NULL and asset_tag=(%s);''', (a_tag,))
+        src_code = cur.fetchone()[0]
+        cur.execute('''INSERT INTO transfer_requests (asset_fk, source, 
+destination, requester, req_time) VALUES ((SELECT asset_pk FROM assets WHERE 
+asset_tag=(%s)), (SELECT facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT 
+facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT user_pk FROM users WHERE 
+username=(%s)), (%s));''', (a_tag, src_code, dest, session['username'], today))
+        conn.commit()
+        return render_template("request_made.html", a_tag=a_tag, fac_src=src_code, fac_dest = dest)
 
 @app.route("/logout", methods=['GET'])
 def logout():

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+	<body BGCOLOR="#ecefdc">
+		<form action="/transfer_req" method="POST">
+			<label><b>Asset</b></label>
+			<select name= 'tag'>
+			{% for asset in asset_list %}
+			<option value = {{ asset[0] }}>{{ asset[0] }}, {{ asset[1] }}</option>
+			{% endfor}
+			</select>
+			<label><b>Transfer Destination</b></label>
+			<select name = des_code">
+			{% for facility in faclist %}
+			<option value = {{ facility[1] }}>{{ facility[0] }}</option>
+			{% endfor %}
+			</select>
+			<input type="submit" value="Submit Transfer Request" />
+		</form>
+	</body>
+</html>
