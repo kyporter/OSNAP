@@ -16,12 +16,11 @@
 			<input type="submit" value="Go to Asset Report page" />
 		</form>
 
-<!--this is a cheat to avoid using JavaScript: displaybutton is an empty list if user is not a logistics officer-->
-		{% for item in displaybutton %}
+		{% if role == 'Logistics Officer' %}
 		<form action="/dispose_asset" method='GET'>
 			<input type="submit" value="Go to Asset Disposal Page" />
 		</form>
-		{% endfor %}
+		{% endif %}
 
 		<form action="/logout" method='GET'>
 			<input type="submit" value="End Session" />
