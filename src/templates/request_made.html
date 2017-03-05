@@ -3,5 +3,13 @@
 <html>
 	<body BGCOLOR="#ecefdc">
 		<h2>Your request to transfer {{ a_tag }} from {{ fac_src }} to {{ fac_dest }} has been successfully added to the queue.</h2>
+
+	<form action="/dashboard" method="GET">
+		<input type="submit" value="Go To Dashboard"/>
+	</form>
+	<form action="/logout" method="GET">
+		<input type="submit" value="End Session"/>
+	</form>
+
 	</body>
 </html>

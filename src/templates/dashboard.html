@@ -30,12 +30,7 @@
 			{% for request in requests %}
 			<tr>
 				<td>{{ request[0] }}</td>
-				<td>{{ request[1] }}</td>
-			<td><form action="/update_transit" method='GET'>
-				<input type='hidden' name='req_num' value={{ 
-request[1] }} />
-				<input type="submit" value="Update Request"/>
-			</form></td>
+				<td><a href="{{ url_for('transfer_req') }}?req_num={{ request[1] }}">Request #{{ request[1] }}</a></td>
 			</tr>
 			{% endfor %}
 		</table>
@@ -48,12 +43,7 @@ request[1] }} />
 			{% for request in requests %}
 			<tr>
 				<td>{{ request[0] }}</td>
-				<td>{{ request[1] }}</td>
-			<td><form action="/approve_req" method='GET'>
-				<input type='hidden' name='req_num' value={{ 
-request[1] }} />
-				<input type="submit" value="Go to Request Approval Page"/>
-			</form></td>
+				<td><a href="{{ url_for('approve_req') }}?req_num={{ request[1] }}">Request #{{ request[1] }}</a></td>
 			</tr>
 			{% endfor %}
 		</table>
