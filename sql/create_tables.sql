@@ -28,7 +28,7 @@ common_name varchar(32),
 fac_code varchar(6),
 PRIMARY KEY(facility_pk));
 
-CREATE TABLE asset_history( --still deciding if I want to have a currently at table as well or if that's too redundant
+CREATE TABLE asset_history( 
 asset_fk integer NOT NULL,
 facility_fk integer,
 arrive_dt timestamp NOT NULL,
