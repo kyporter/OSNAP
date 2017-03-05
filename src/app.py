@@ -67,7 +67,18 @@ def dashboard():
         if 'name' in session:
             uname = session['name']
             role = session['role']
-            return render_template('dashboard.html', username = uname, role = role)
+            if role == 'Facilities Officer':
+                cur.execute('''SELECT a.asset_tag, tr.request_pk FROM assets a 
+JOIN transfer_requests tr ON a.asset_pk=tr.asset_fk WHERE tr.app_time IS NULL;''')
+                results = cur.fetchall()                
+            elif role == 'Logistics Officer':
+                cur.execute('''SELECT a.asset_tag, tr.request_pk FROM assets a 
+JOIN transfer_requests tr ON a.asset_pk=tr.asset_fk WHERE tr.app_time IS NOT NULL AND tr.unload_dt 
+IS NULL;''')
+                results = cur.fetchall()                
+            else:
+                results = []
+            return render_template('dashboard.html', username = uname, role = role, requests = results)
         else:
             return redirect("/login")
 
@@ -147,7 +158,7 @@ def dispose_asset():
                 return redirect("/dispose_asset")
     #if current user is not a logistics officer:
     else:
-        return render_template("LO_only.html")    
+        return render_template("LO_only.html", page="Asset Disposal")    
 
 @app.route("/asset_report", methods=['GET', 'POST'])
 def asset_report():
@@ -208,6 +219,48 @@ facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT user_pk FROM users WHE
 username=(%s)), (%s));''', (a_tag, src_code, dest, session['name'], today))
         conn.commit()
         return render_template("request_made.html", a_tag=a_tag, fac_src=src_code, fac_dest = dest)
+
+@app.route("/approve_req", methods = ['GET', 'POST'])
+def approve_req():
+    if session['role'] != 'Facilities Officer':
+        return render_template("FO_only.html", page='Request Approval')
+
+    if request.method == 'GET' and 'req_num' in request.args:
+        req_num = request.args.get('req_num')
+        cur.execute("SELECT app_time FROM transfer_requests WHERE request_pk = (%s);", (req_num,))
+        approved = cur.fetchone()
+
+        if approved != None:
+            cur.execute('''SELECT a.asset_tag, a.description, src.common_name, 
+dest.common_name, tr.request_pk FROM assets a JOIN transfer_requests tr ON 
+tr.asset_fk=a.asset_pk JOIN facilities src ON tr.source = src.facility_pk JOIN facilities dest ON 
+tr.destination = dest.facility_pk WHERE tr.request_pk = (%s);''', (req_num,))
+            results = cur.fetchone()
+    #results[0]: asset tag, results[1]: asset description, results[2]: source name, 
+    #results[3]: destination name, results[4]: request number
+            return render_template("approve_request.html", result = results)
+
+        else:
+            return render_template("request_na.html", app_date = approved[0]) 
+
+    if request.method == 'POST' and 'approval' in request.form and 'req_num' in request.form:
+        approved = request.form['approval']
+        req_num = request.form['req_num']
+
+        if approved == 'True':
+            today = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    #request has been approved: add approver and app_time
+            cur.execute('''UPDATE transfer_requests SET app_time=(%s), 
+approver=(SELECT user_pk FROM users WHERE username=(%s)) WHERE 
+request_pk=(%s);''', (today, session['name'], req_num))
+
+        else:
+    #request has been denied: remove from system
+            cur.execute("DELETE FROM transfer_requests WHERE request_pk=(%s);", (req_num,))                                
+
+        conn.commit()
+
+    return redirect('/dashboard')
 
 @app.route("/logout", methods=['GET'])
 def logout():

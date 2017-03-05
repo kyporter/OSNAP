@@ -1,0 +1,29 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<h2>Act On Request #{{ result[4] }}</h2>
+		<h3>Information About Request:</h3>
+		<table>
+			<th>Asset Tag</th>
+			<th>Description</th>
+			<th>Current Location</th>
+			<th>Requested Destination</th>
+			<th>Request Number</th>
+			<tr>
+				<td>{{ result[0] }}</td>
+				<td>{{ result[1] }}</td>
+				<td>{{ result[2] }}</td>
+				<td>{{ result[3] }}</td>
+				<td>{{ result[4] }}</td>
+		</table>
+		<form action="/approve_req" method="POST">
+			<input type="hidden" name="req_num" value={{ result[4] }} />
+			<input type="hidden" name="approval" value="True"/>
+			<input type="submit" value="Approve Request"/>
+		</form>
+		<form action="/approve_req" method="POST">
+			<input type="hidden" name="req_num" value={{ result[4] }} />
+			<input type="hidden" name="approval" value="False"/>
+			<input type="submit" value="Deny Request"/>
+		</form>
+	</body>
+</html>
