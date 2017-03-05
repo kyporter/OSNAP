@@ -30,7 +30,7 @@
 			{% for request in requests %}
 			<tr>
 				<td>{{ request[0] }}</td>
-				<td><a href="{{ url_for('transfer_req') }}?req_num={{ request[1] }}">Request #{{ request[1] }}</a></td>
+				<td><a href="{{ url_for('update_transit') }}?req_num={{ request[1] }}">Request #{{ request[1] }}</a></td>
 			</tr>
 			{% endfor %}
 		</table>

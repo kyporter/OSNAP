@@ -1,0 +1,17 @@
+<html>
+	<body BGCOLOR="#ecefdc">
+		<form action="/update_transit" method="POST">
+			<input type="hidden" name="request_num" value={{ req_num }} />
+			<input type="hidden" name="update_type" value={{ type }} />
+			<label><b>Updated {{ type }} Time</b></label>
+			<input type="date" name="u_time" />
+			<input type="submit" value="Update Transfer Information" />
+		</form>
+		<form action="/dashboard" method="GET">
+			<input type="submit" value="Go To Dashboard"/>
+		</form>
+		<form action="/logout" method="GET">
+			<input type="submit" value="End Session"/>
+		</form>
+	</body>
+</html>

@@ -229,8 +229,9 @@ def approve_req():
         req_num = request.args.get('req_num')
         cur.execute("SELECT app_time FROM transfer_requests WHERE request_pk = (%s);", (req_num,))
         approved = cur.fetchone()
-
-        if approved != None:
+    #If request exists but has no app_time, this will return [None]. 
+    #If request doesn't exist, this will return None.
+        if approved != None and approved != [None]:
             cur.execute('''SELECT a.asset_tag, a.description, src.common_name, 
 dest.common_name, tr.request_pk FROM assets a JOIN transfer_requests tr ON 
 tr.asset_fk=a.asset_pk JOIN facilities src ON tr.source = src.facility_pk JOIN facilities dest ON 
@@ -261,6 +262,36 @@ request_pk=(%s);''', (today, session['name'], req_num))
         conn.commit()
 
     return redirect('/dashboard')
+
+@app.route("/update_transit", methods=['GET', 'POST'])
+def update_transit():
+    if session['role'] != 'Logistics Officer':
+        return render_template('LO_only.html', page = 'Transit Updates')
+    if request.method == 'GET' and 'req_num' in request.args:
+        req_num = request.args.get('req_num')
+        cur.execute("SELECT unload_dt, load_dt FROM transfer_requests WHERE request_pk=(%s);", (req_num,))
+        needs_dates = cur.fetchone()
+    #if unload_dt(needs_dates[0]) is None, then it still needs to be set
+    #if needs_dates == None, then there was no request with that number
+        if needs_dates != None and needs_dates[0] == None:
+            type = 'Unload'
+            if needs_dates[1] == None:
+                type = 'Load' 
+            return render_template("update_request.html", type=type, req_num=req_num)
+        else:
+            return render_template("invalid_request.html")
+    if request.method == 'POST' and 'update_type' in request.form and 'u_time' in request.form:
+        u_type = request.form['update_type']
+        u_time = request.form['u_time']
+        req_num = request.form['request_num']
+        if u_type == 'Unload':
+            cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
+user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
+        else:
+            cur.execute('''UPDATE transfer_requests SET load_dt=(%s), sets_load=(SELECT 
+user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
+        conn.commit()
+        return redirect("/dashboard")
 
 @app.route("/logout", methods=['GET'])
 def logout():
