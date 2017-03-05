@@ -3,6 +3,7 @@ import psycopg2
 import psycopg2.extras
 from config import dbname, dbhost, dbport
 from time import gmtime, strftime
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "wecanpretendthisisarandomkeyright?" #so that session works
@@ -196,7 +197,7 @@ def transfer_req():
     
     if request.method == 'GET':
         cur.execute('''SELECT asset_tag, common_name FROM assets JOIN 
-asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_pk 
+asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_pk
 WHERE facility_fk IS NOT NULL and depart_dt IS NULL;''')
         assets = cur.fetchall()
         fac_list = getFacList()
@@ -212,6 +213,8 @@ WHERE facility_fk IS NOT NULL and depart_dt IS NULL;''')
 asset_pk=asset_fk JOIN facilities ON facility_pk=facility_fk WHERE depart_dt IS         
 NULL and asset_tag=(%s);''', (a_tag,))
         src_code = cur.fetchone()[0]
+        if src_code == dest:
+            return render_template("invalid_request.html")
         cur.execute('''INSERT INTO transfer_requests (asset_fk, source, 
 destination, requester, req_time) VALUES ((SELECT asset_pk FROM assets WHERE 
 asset_tag=(%s)), (SELECT facility_pk FROM facilities WHERE fac_code=(%s)), (SELECT 
@@ -231,7 +234,7 @@ def approve_req():
         approved = cur.fetchone()
     #If request exists but has no app_time, this will return [None]. 
     #If request doesn't exist, this will return None.
-        if approved != None and approved != [None]:
+        if approved != None or approved != [None]:
             cur.execute('''SELECT a.asset_tag, a.description, src.common_name, 
 dest.common_name, tr.request_pk FROM assets a JOIN transfer_requests tr ON 
 tr.asset_fk=a.asset_pk JOIN facilities src ON tr.source = src.facility_pk JOIN facilities dest ON 
@@ -284,18 +287,29 @@ def update_transit():
         u_type = request.form['update_type']
         u_time = request.form['u_time']
         req_num = request.form['request_num']
-        if u_type == 'Unload':
-            cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
-user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
+        if u_type == 'Load':
+            cur.execute('''SELECT request_pk FROM transfer_requests WHERE 
+app_time<=(%s) AND request_pk = (%s);''', (u_time, req_num))
+            request_good = cur.fetchone()
+            if request_good != None: 
+                cur.execute('''UPDATE transfer_requests SET load_dt=(%s), 
+sets_load=(SELECT user_pk FROM users WHERE username=(%s)) WHERE 
+request_pk=(%s);''', (u_time, session['name'], req_num))
+                conn.commit()
         else:
-            cur.execute('''UPDATE transfer_requests SET load_dt=(%s), sets_load=(SELECT 
+            cur.execute('''SELECT load_dt FROM transfer_requests WHERE 
+request_pk=(%s) AND load_dt <= (%s);''', (req_num, u_time))
+            load_time = cur.fetchone()
+            if load_time != None:
+                cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
 user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
-        conn.commit()
+                conn.commit()
         return redirect("/dashboard")
 
 @app.route("/logout", methods=['GET'])
 def logout():
-    if request.method == 'GET':
+    if request.method == 'GET' and 'name' in session:
         uname = session['name']
         session.clear() #ends session
         return render_template("logout.html", username=uname)
+    return redirect("/login")
