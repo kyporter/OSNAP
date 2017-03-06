@@ -57,3 +57,6 @@ INSERT INTO roles (title, description) VALUES ('Logistics Officer', 'May dispose
 of assets');
 
 INSERT INTO roles(title) VALUES ('Facilities Officer');
+
+--For functionality/thoroughness in asset_history:
+INSERT INTO facilities (common_name, fac_code) VALUES ('in transit', 'INTRAN');

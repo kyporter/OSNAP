@@ -14,7 +14,7 @@ cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 def getFacList():
     '''Returns a list of lists where each sublist is a common name and facility code'''
-    cur.execute("SELECT common_name, fac_code FROM facilities;")
+    cur.execute("SELECT common_name, fac_code FROM facilities WHERE common_name != 'in transit';")
     fac_list = cur.fetchall()   
     return fac_list
 
@@ -198,7 +198,8 @@ def transfer_req():
     if request.method == 'GET':
         cur.execute('''SELECT asset_tag, common_name FROM assets JOIN 
 asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_pk
-WHERE facility_fk IS NOT NULL and depart_dt IS NULL;''')
+WHERE facility_fk IS NOT NULL and depart_dt IS NULL AND common_name != 'in 
+transit';''')
         assets = cur.fetchall()
         fac_list = getFacList()
         return render_template('transfer_req.html', faclist = fac_list, asset_list=assets)
@@ -234,7 +235,7 @@ def approve_req():
         approved = cur.fetchone()
     #If request exists but has no app_time, this will return [None]. 
     #If request doesn't exist, this will return None.
-        if approved != None or approved != [None]:
+        if approved != None and approved == [None]:
             cur.execute('''SELECT a.asset_tag, a.description, src.common_name, 
 dest.common_name, tr.request_pk FROM assets a JOIN transfer_requests tr ON 
 tr.asset_fk=a.asset_pk JOIN facilities src ON tr.source = src.facility_pk JOIN facilities dest ON 
@@ -245,7 +246,7 @@ tr.destination = dest.facility_pk WHERE tr.request_pk = (%s);''', (req_num,))
             return render_template("approve_request.html", result = results)
 
         else:
-            return render_template("request_na.html", app_date = approved[0]) 
+            return render_template("invalid_request.html") 
 
     if request.method == 'POST' and 'approval' in request.form and 'req_num' in request.form:
         approved = request.form['approval']
@@ -293,6 +294,8 @@ def update_transit():
         u_type = request.form['update_type']
         u_time = request.form['u_time']
         req_num = request.form['request_num']
+        cur.execute("SELECT asset_fk FROM transfer_requests WHERE request_pk=(%s);", (req_num,))
+        asset = cur.fetchone()[0]
 
         if u_type == 'Load':
             cur.execute('''SELECT request_pk FROM transfer_requests WHERE 
@@ -300,9 +303,18 @@ app_time<=(%s) AND request_pk = (%s);''', (u_time, req_num))
             request_good = cur.fetchone()
 
             if request_good != None: 
+    #Update request information
                 cur.execute('''UPDATE transfer_requests SET load_dt=(%s), 
 sets_load=(SELECT user_pk FROM users WHERE username=(%s)) WHERE 
 request_pk=(%s);''', (u_time, session['name'], req_num))
+    #update asset location(remove from current facility)
+                cur.execute('''UPDATE asset_history SET depart_dt=(%s) WHERE 
+asset_fk=(%s) AND facility_fk=(SELECT source FROM transfer_requests WHERE 
+request_pk=(%s)) AND depart_dt IS NULL;''', (u_time, asset, req_num))
+    #update asset location(set 'in transit')
+                cur.execute('''INSERT INTO asset_history (asset_fk, 
+facility_fk, arrive_dt) VALUES ((%s), (SELECT facility_pk FROM facilities WHERE 
+common_name='in transit'), (%s));''', (asset, u_time))
                 conn.commit()
 
         else:
@@ -310,8 +322,17 @@ request_pk=(%s);''', (u_time, session['name'], req_num))
 request_pk=(%s) AND load_dt <= (%s);''', (req_num, u_time))
             load_time = cur.fetchone()
             if load_time != None:
+    #Update transfer information
                 cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
 user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
+    #Update asset location(remove from 'in transit')
+                cur.execute('''UPDATE asset_history SET depart_dt=(%s) WHERE 
+asset_fk=(%s) AND facility_fk=(SELECT facility_pk FROM facilities WHERE 
+common_name='in transit') AND depart_dt IS NULL;''', (u_time, asset))
+    #Update asset location(set at destination)
+                cur.execute('''INSERT INTO asset_history (asset_fk, 
+facility_fk, arrive_dt) VALUES ((%s), (SELECT destination FROM 
+transfer_requests WHERE request_pk=(%s)), (%s));''', (asset, req_num, u_time))
                 conn.commit()
 
         return redirect("/dashboard")
