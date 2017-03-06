@@ -270,32 +270,41 @@ request_pk=(%s);''', (today, session['name'], req_num))
 def update_transit():
     if session['role'] != 'Logistics Officer':
         return render_template('LO_only.html', page = 'Transit Updates')
+
     if request.method == 'GET' and 'req_num' in request.args:
         req_num = request.args.get('req_num')
         cur.execute("SELECT unload_dt, load_dt FROM transfer_requests WHERE request_pk=(%s);", (req_num,))
         needs_dates = cur.fetchone()
+
     #if unload_dt(needs_dates[0]) is None, then it still needs to be set
     #if needs_dates == None, then there was no request with that number
         if needs_dates != None and needs_dates[0] == None:
             type = 'Unload'
+
             if needs_dates[1] == None:
                 type = 'Load' 
+
             return render_template("update_request.html", type=type, req_num=req_num)
+
         else:
             return render_template("invalid_request.html")
+
     if request.method == 'POST' and 'update_type' in request.form and 'u_time' in request.form:
         u_type = request.form['update_type']
         u_time = request.form['u_time']
         req_num = request.form['request_num']
+
         if u_type == 'Load':
             cur.execute('''SELECT request_pk FROM transfer_requests WHERE 
 app_time<=(%s) AND request_pk = (%s);''', (u_time, req_num))
             request_good = cur.fetchone()
+
             if request_good != None: 
                 cur.execute('''UPDATE transfer_requests SET load_dt=(%s), 
 sets_load=(SELECT user_pk FROM users WHERE username=(%s)) WHERE 
 request_pk=(%s);''', (u_time, session['name'], req_num))
                 conn.commit()
+
         else:
             cur.execute('''SELECT load_dt FROM transfer_requests WHERE 
 request_pk=(%s) AND load_dt <= (%s);''', (req_num, u_time))
@@ -304,7 +313,28 @@ request_pk=(%s) AND load_dt <= (%s);''', (req_num, u_time))
                 cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
 user_pk FROM users WHERE username=(%s)) WHERE request_pk=(%s);''', (u_time, session['name'], req_num))
                 conn.commit()
+
         return redirect("/dashboard")
+
+@app.route("/transfer_report", methods=['GET', 'POST'])
+def transfer_report():
+    if request.method == 'GET':
+        return render_template("g_trans_rep.html")
+
+    if request.method == 'POST' and 'req_date' in request.form:
+        req_date = request.form['req_date']
+        cur.execute('''SELECT tr.request_pk, a.asset_tag, src.common_name, 
+dest.common_name, tr.load_dt, tr.unload_dt, sl.username, su.username FROM 
+transfer_requests tr JOIN assets a ON tr.asset_fk=a.asset_pk JOIN facilities src 
+ON src.facility_pk=tr.source JOIN facilities dest ON dest.facility_pk = 
+tr.destination JOIN users sl ON sl.user_pk=tr.sets_load JOIN users su ON 
+su.user_pk=tr.sets_unload WHERE ((%s) BETWEEN tr.load_dt AND tr.unload_dt) OR 
+(((%s)>tr.load_dt) AND tr.unload_dt IS NULL);''', (req_date, req_date))  
+        results = cur.fetchall()
+    #for item in results: item[0]: request number, item[1]: asset tag, 
+    #item[2]: departed from, item[3]: will arrive at, item[4]: loaded on, 
+    #item[5]: unloaded on, item[6]: load date set by, item[7]: unload date set by
+        return render_template("t_trans_rep.html", rep_date=req_date, info=results)
 
 @app.route("/logout", methods=['GET'])
 def logout():
