@@ -334,7 +334,7 @@ su.user_pk=tr.sets_unload WHERE ((%s) BETWEEN tr.load_dt AND tr.unload_dt) OR
     #for item in results: item[0]: request number, item[1]: asset tag, 
     #item[2]: departed from, item[3]: will arrive at, item[4]: loaded on, 
     #item[5]: unloaded on, item[6]: load date set by, item[7]: unload date set by
-        return render_template("t_trans_rep.html", rep_date=req_date, info=results)
+        return render_template("p_trans_rep.html", rep_date=req_date, info=results)
 
 @app.route("/logout", methods=['GET'])
 def logout():
