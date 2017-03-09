@@ -1,5 +1,6 @@
 import psycopg2
 import psycopg2.extras
+import sys
 from config import dbname, dbhost, dbport
 
 conn = psycopg2.connect(database=dbname, host=dbhost, port=dbport)
@@ -67,3 +68,47 @@ transfers_info = cur.fetchall()
 	#username, item[2]: time of request, item[3]: approver username, 
 	#item[4]: time of approval, item[5]: source fcode, item[6]: destination 
 	#fcode, item[7]: load date, item[8]: unload date
+
+active_dict = {'1' : 'True'; '0' : 'False}
+
+def construct_name(dname, fname):
+    '''concatenates directory with filename'''
+    final_fname = dname + '/' + fname
+    return final_fname
+
+def write_info(infofile, header, infolist):
+    '''
+    writes information from infolist into infofile by sublist item, 
+    first line, the column headers, is written from header
+    '''
+    with open(infofile, 'w') as f:
+        f.write(header)
+        for item in list:
+            newrow = ','.join(item)
+            newrow += '\n'
+            f.write(newrow)
+
+def main():
+    if len(sys.argv)<2:
+        print("Usage: python3 %s <directory_name>"%sys.argv[0])
+        return
+
+    dir_name = sys.argv[1]
+    print("Files will be written to: %s"%dir_name)
+
+    user_fname = construct_name(dir_name, 'users.csv')
+    fac_fname = construct_name(dir_name, 'facilities.csv')
+    ast_fname = construct_name(dir_name, 'assets.csv')
+    tran_fname = construct_name(dir_name, 'transfers.csv')
+
+    user_header = 'username,password,role,active,\n'
+    fac_header = 'fcode,common_name,\n'
+    ast_header = 'asset_tag,description,facility,acquired,disposed,\n'
+    tran_header = 'asset_tag,request_by,request_dt,approve_by,approve_dt,source,destination,load_dt,unload_dt,\n'
+
+    write_info(user_fname, user_header, users_info)
+    write_info(fac_fname, fac_header, facs_info)
+    write_info(ast_fname, ast_header, assets_info)
+    write_info(tran_fname, tran_header, transfers_info)
+
+
