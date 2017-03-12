@@ -20,6 +20,7 @@ CREATE TABLE assets(
 asset_pk serial,
 asset_tag varchar(16) NOT NULL,
 description text, --I really want this to be not null but for now I'll leave it nullable
+acq_date timestamp, --improves logic of import/export action
 PRIMARY KEY(asset_pk));
 
 CREATE TABLE facilities(
