@@ -1,7 +1,6 @@
 import psycopg2
 import psycopg2.extras
 import sys
-from config import dbname, dbhost, dbport
 
 
 #active_dict = {'1' : 'True', '0' : 'False'}
@@ -24,13 +23,15 @@ def write_info(infofile, header, infolist):
             f.write(newrow)
 
 def main():
-    if len(sys.argv)<2:
-        print("Usage: python3 %s <directory_name>"%sys.argv[0])
+    if len(sys.argv)<3:
+        print("Usage: python3 %s <dbname> <directory_name>"%sys.argv[0])
         return
 
-    print("starting database stuff")
+    dbname = sys.argv[1]
 
-    conn = psycopg2.connect(database=dbname, host=dbhost, port=dbport)
+    print("starting database stuff exporting from %s", dbname)
+
+    conn = psycopg2.connect(database=dbname, host="127.0.0.1", port="5432")
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) 
 	##creating connection and cursor here hopefully makes it easier to locate and adjust as needed
 
@@ -119,7 +120,7 @@ ua.user_pk = tr.approver;''')
 	       
     print(transfers_info)
 	       
-    dir_name = sys.argv[1]
+    dir_name = sys.argv[2]
     print("Files will be written to: %s"%dir_name)
 
     user_fname = construct_name(dir_name, 'users.csv')
