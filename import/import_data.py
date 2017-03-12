@@ -40,28 +40,28 @@ def main():
     users_info = []
     users_info = read_info(userfile, users_info)
 
-    print(users_info)
+#    print(users_info)
 
     #gets facs info
     facsfile = dir_name + '/facilities.csv'
     facs_info = []
     read_info(facsfile, facs_info)
 
-    print(facs_info)
+#    print(facs_info)
 
     #gets asset info
     assetfile = dir_name + '/assets.csv'
     assets_info = []
     read_info(assetfile, assets_info)
 
-    print(assets_info)
+#    print(assets_info)
 
     #gets transfers info
     transferfile = dir_name + '/transfers.csv'
     transfers_info = []
     read_info(transferfile, transfers_info)
 	       
-    print(transfers_info)
+#    print(transfers_info)
 	       
     #read user info into database
     for user in users_info:
