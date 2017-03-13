@@ -28,15 +28,15 @@ def main():
 
     dbname = sys.argv[1]
 
-    print("starting database connection to ", dbname)
+#    print("starting database connection to ", dbname)
 
     conn = psycopg2.connect(database=dbname, host="127.0.0.1", port="5432")
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) 
 
-    print("Made database connection")
+#    print("Made database connection")
 
     dir_name = sys.argv[2]
-    print("Files will be read from: %s"%dir_name)
+#    print("Files will be read from: %s"%dir_name)
 
     #gets user info
     userfile = dir_name + '/users.csv'
@@ -95,7 +95,6 @@ facility_pk FROM facilities WHERE fac_code=(%s)), (%s));''', (asset[0], asset[2]
         #insert requests
         cur.execute("SELECT asset_pk FROM assets WHERE asset_tag=(%s);", (transfer[0],))
         a_pk = cur.fetchone()[0]
-        
         cur.execute('''INSERT INTO transfer_requests (asset_fk, requester, 
 req_time, approver, app_time, source, destination, load_dt, unload_dt) VALUES 
 ((%s), (SELECT user_pk FROM users WHERE username=(%s)), (%s), (SELECT user_pk 
@@ -110,6 +109,9 @@ asset_fk=(%s) AND facility_fk=(SELECT facility_pk FROM facilities WHERE
 fac_code=(%s)) AND depart_dt IS NULL;''', (transfer[7], a_pk, transfer[5]))
             if transfer[8] != None:
                 cur.execute('''INSERT INTO asset_history (asset_fk, facility_fk, arrive_dt) VALUES ((%s), (SELECT facility_pk FROM facilities WHERE fac_code=(%s)), (%s));''', (a_pk, transfer[6], transfer[8]))
+            else:
+                cur.execute('''INSERT INTO asset_history (asset_fk, facility_fk, arrive_dt) VALUES ((%s), (SELECT facility_pk FROM facilities WHERE 
+fac_code='INTRAN'), (%s));''', (a_pk, transfer[7]))
     conn.commit()
 
 
