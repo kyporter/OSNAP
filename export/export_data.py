@@ -104,8 +104,8 @@ NULL and asset_fk=(%s);''', (item[3],))
 tr.app_time, src.fac_code, dest.fac_code, tr.load_dt, tr.unload_dt FROM 
 transfer_requests tr JOIN assets a ON a.asset_pk = tr.asset_fk JOIN facilities 
 src ON src.facility_pk = tr.source JOIN facilities dest ON dest.facility_pk = 
-tr.destination JOIN users ur ON ur.user_pk = tr.requester JOIN users ua ON 
-ua.user_pk = tr.approver;''')
+tr.destination JOIN users ur ON ur.user_pk = tr.requester LEFT OUTER JOIN users ua ON 
+tr.approver = ua.user_pk;''')
     transfers_info = cur.fetchall()
     #item in transfers_info: item[0]: asset tag, item[1]: requester 
     #username, item[2]: time of request, item[3]: approver username, 
@@ -114,9 +114,20 @@ ua.user_pk = tr.approver;''')
     for item in transfers_info:
     #make datetime objects strings
         item[2] = item[2].strftime("%m/%d/%Y %H:%M")
-        item[4] = item[4].strftime("%m/%d/%Y %H:%M")
-        item[7] = item[7].strftime("%m/%d/%Y")
-        item[8] = item[8].strftime("%m/%d/%Y")
+        if item[3] == None:
+            item[3] = 'NULL'
+        if item[4] != None:
+            item[4] = item[4].strftime("%m/%d/%Y %H:%M")
+        else:
+            item[4] = 'NULL'
+        if item[7] != None:
+            item[7] = item[7].strftime("%m/%d/%Y")
+        else:
+            item[7] = 'NULL'
+        if item[8] != None:
+            item[8] = item[8].strftime("%m/%d/%Y")
+        else:
+            item[8] = 'NULL'
 	       
     print(transfers_info)
 	       
@@ -128,10 +139,10 @@ ua.user_pk = tr.approver;''')
     ast_fname = construct_name(dir_name, 'assets.csv')
     tran_fname = construct_name(dir_name, 'transfers.csv')
 
-    user_header = 'username,password,role,active,\n'
-    fac_header = 'fcode,common_name,\n'
-    ast_header = 'asset_tag,description,facility,acquired,disposed,\n'
-    tran_header = 'asset_tag,request_by,request_dt,approve_by,approve_dt,source,destination,load_dt,unload_dt,\n'
+    user_header = 'username,password,role,active\n'
+    fac_header = 'fcode,common_name\n'
+    ast_header = 'asset_tag,description,facility,acquired,disposed\n'
+    tran_header = 'asset_tag,request_by,request_dt,approve_by,approve_dt,source,destination,load_dt,unload_dt\n'
 
     write_info(user_fname, user_header, users_info)
     write_info(fac_fname, fac_header, facs_info)
