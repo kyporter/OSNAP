@@ -15,6 +15,9 @@ def read_info(inputfile, templist):
                 firstline = False
             else:
                 line_info = line.strip().split(',')
+                for i in range(len(line_info)):
+                    if line_info[i] == 'NULL':
+                        line_info[i] = None
                 templist.append(line_info)
     return templist
 
@@ -71,6 +74,9 @@ VALUES ((%s), (%s), (SELECT role_pk FROM roles WHERE title=(%s)), (%s));''', (us
 
     #read facility info into database
     for facility in facs_info:
+        while len(facility) > 2:
+            facility[1] = facility[1] + ',' + facility[2]
+            facility.remove(facility[2])
         cur.execute('''INSERT INTO facilities (fac_code, common_name) VALUES 
 ((%s), (%s));''', (facility[0], facility[1]))
     conn.commit()
@@ -89,6 +95,7 @@ facility_pk FROM facilities WHERE fac_code=(%s)), (%s));''', (asset[0], asset[2]
         #insert requests
         cur.execute("SELECT asset_pk FROM assets WHERE asset_tag=(%s);", (transfer[0],))
         a_pk = cur.fetchone()[0]
+        
         cur.execute('''INSERT INTO transfer_requests (asset_fk, requester, 
 req_time, approver, app_time, source, destination, load_dt, unload_dt) VALUES 
 ((%s), (SELECT user_pk FROM users WHERE username=(%s)), (%s), (SELECT user_pk 
@@ -108,7 +115,7 @@ fac_code=(%s)) AND depart_dt IS NULL;''', (transfer[7], a_pk, transfer[5]))
 
     #deal with asset disposal
     for asset in assets_info:
-        if asset[4] != 'NULL':
+        if asset[4] != None:
             #set last known facility's departure date
             cur.execute('''UPDATE asset_history SET depart_dt=(%s) WHERE asset_fk = 
 (SELECT asset_pk FROM assets WHERE asset_tag=(%s)) AND depart_dt IS NULL AND 
