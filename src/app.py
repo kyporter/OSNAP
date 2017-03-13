@@ -116,7 +116,7 @@ def add_asset():
         a_date = request.form['intake']
         cur.execute("SELECT asset_pk FROM assets WHERE asset_tag = (%s);", (a_tag,))
         if cur.fetchone() == None:
-            cur.execute("INSERT INTO assets (asset_tag, description) VALUES ((%s), (%s));", (a_tag, desc))
+            cur.execute("INSERT INTO assets (asset_tag, description, acq_date) VALUES ((%s), (%s), (%s));", (a_tag, desc, a_date))
             cur.execute('''INSERT INTO asset_history (asset_fk, 
 facility_fk, arrive_dt) VALUES ((SELECT asset_pk FROM assets WHERE 
 asset_tag = (%s)), (SELECT facility_pk FROM facilities WHERE fac_code 
