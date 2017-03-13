@@ -348,8 +348,9 @@ def transfer_report():
 dest.common_name, tr.load_dt, tr.unload_dt, sl.username, su.username FROM 
 transfer_requests tr JOIN assets a ON tr.asset_fk=a.asset_pk JOIN facilities src 
 ON src.facility_pk=tr.source JOIN facilities dest ON dest.facility_pk = 
-tr.destination JOIN users sl ON sl.user_pk=tr.sets_load JOIN users su ON 
-su.user_pk=tr.sets_unload WHERE ((%s) BETWEEN tr.load_dt AND tr.unload_dt) OR 
+tr.destination LEFT OUTER JOIN users sl ON tr.sets_load=sl.user_pk LEFT OUTER JOIN
+users su ON 
+tr.sets_unload=su.user_pk WHERE ((%s) BETWEEN tr.load_dt AND tr.unload_dt) OR 
 (((%s)>tr.load_dt) AND tr.unload_dt IS NULL);''', (req_date, req_date))  
         results = cur.fetchall()
     #for item in results: item[0]: request number, item[1]: asset tag, 
