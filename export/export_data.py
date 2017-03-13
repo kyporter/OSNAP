@@ -29,13 +29,13 @@ def main():
 
     dbname = sys.argv[1]
 
-    print("starting database stuff exporting from %s", dbname)
+#    print("starting database stuff exporting from %s", dbname)
 
     conn = psycopg2.connect(database=dbname, host="127.0.0.1", port="5432")
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) 
 	##creating connection and cursor here hopefully makes it easier to locate and adjust as needed
 
-    print("Made database connection")
+#    print("Made database connection")
 
     #creates users_info
     cur.execute('''SELECT u.username, u.password, r.title, u.active FROM users u JOIN 
@@ -50,7 +50,7 @@ roles r ON u.role_fk=r.role_pk;''')
         else:
             item[3] = 'False'
 
-    print(users_info)
+#    print(users_info)
 
     #creates facs_info
     cur.execute('''SELECT fac_code, common_name FROM facilities WHERE common_name != 
@@ -58,7 +58,7 @@ roles r ON u.role_fk=r.role_pk;''')
     facs_info = cur.fetchall()
 	#item in facs_info: item[0]: fcode, item[1]: common name
 
-    print(facs_info)
+#    print(facs_info)
 
     #creates assets_info
 	#create blank list
@@ -97,7 +97,7 @@ NULL and asset_fk=(%s);''', (item[3],))
 	#item[2]: fcode, item[3]: acquired date, item[4]: disposal date or 
 	#'NULL' if not disposed   
 
-    print(assets_info)
+#    print(assets_info)
 
     #creates transfers_info
     cur.execute('''SELECT a.asset_tag, ur.username, tr.req_time, ua.username, 
@@ -129,10 +129,10 @@ tr.approver = ua.user_pk;''')
         else:
             item[8] = 'NULL'
 	       
-    print(transfers_info)
+#    print(transfers_info)
 	       
     dir_name = sys.argv[2]
-    print("Files will be written to: %s"%dir_name)
+#    print("Files will be written to: %s"%dir_name)
 
     user_fname = construct_name(dir_name, 'users.csv')
     fac_fname = construct_name(dir_name, 'facilities.csv')
