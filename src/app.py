@@ -42,6 +42,41 @@ def create_user():
         else:
             return redirect("/create_user")
 
+#web service for adding/revoking users
+@app.route("/update_user", methods=['POST'])
+def update_user():
+    if request.method == 'POST' and 'update_type' in request.form and 'username' in request.form:
+        action = request.form['update_type']
+        uname = request.form['username']
+
+        if action == 'activate' and 'password' in request.form:
+            pword = request.form['password']
+            cur.execute("SELECT COUNT(*) FROM users WHERE username = (%s);", (uname,))
+            exists = cur.fetchone()[0]
+
+            if exists:
+                cur.execute("UPDATE users SET password = (%s), active = TRUE WHERE username = (%s);", (pword, uname))
+            else:
+                cur.execute("INSERT INTO users (username, password) VALUES ((%s), (%s));", (uname, pword))
+            conn.commit()
+            return jsonify(response="user activated")
+
+        elif action == 'revoke':
+            cur.execute("SELECT COUNT(*) FROM users WHERE username = (%s);", (uname,))
+            exists = cur.fetchone()[0]
+
+            if exists:
+                cur.execute("UPDATE users SET active = FALSE WHERE username = (%s);", (uname,))
+                conn.commit()
+                return jsonify(response="user access revoked")
+
+            else:
+                return jsonify(response ="Revoke Failed: user doesn't exist")
+        else:
+            return jsonify(response= 'Activate Failed: missing password')
+    else:
+        return jsonify(response= 'Action Failed: missing information')
+
 @app.route("/login", methods=['POST', 'GET'])
 def login():
     if request.method == 'GET':
