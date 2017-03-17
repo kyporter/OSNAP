@@ -1,3 +1,5 @@
+#! /usr/bin/bash
+
 #Adapted from preflight in dellswor/lost
 #Prepare database:
 
