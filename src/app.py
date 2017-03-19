@@ -22,26 +22,6 @@ def getFacList():
 def index():
     return redirect("/login")
 
-@app.route("/create_user", methods=['POST', 'GET'])
-def create_user():
-    if request.method == 'GET':
-        return render_template('create_user.html')
-    if request.method == 'POST':
-        if 'username' in request.form and 'password' in request.form:
-            uname = request.form['username']
-            pword = request.form['password']
-            role = request.form['role']
-            cur.execute("SELECT password FROM users WHERE username = (%s);", (uname,))
-            exist = cur.fetchall()
-            if exist == []:
-                cur.execute("INSERT INTO users (username, password, role_fk) VALUES ((%s), (%s), (SELECT role_pk FROM roles WHERE title = (%s)));", (uname, pword, role))
-                conn.commit()
-                return render_template('c_user_success.html', username = uname)
-            else:
-                return render_template('c_user_fail.html', username = uname)
-        else:
-            return redirect("/create_user")
-
 #web service for adding/revoking users
 @app.route("/update_user", methods=['POST'])
 def update_user():
@@ -57,7 +37,8 @@ def update_user():
             if exists:
                 cur.execute("UPDATE users SET password = (%s), active = TRUE WHERE username = (%s);", (pword, uname))
             else:
-                cur.execute("INSERT INTO users (username, password) VALUES ((%s), (%s));", (uname, pword))
+                role = request.form['role']
+                cur.execute("INSERT INTO users (username, password, role_fk) VALUES ((%s), (%s), (SELECT role_pk FROM roles WHERE title = (%s)));", (uname, pword, role))
             conn.commit()
             return jsonify(response="user activated")
 
