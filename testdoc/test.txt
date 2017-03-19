@@ -1,0 +1,27 @@
+
+Preliminary setup: No problems, everything worked from the getgo.
+
+1) Creating Users
+a. All users were successfully created, and all errors/invalid input were reported and not inserted into the database.
+2) Logging In
+a. All users could log in and invalid input resulted in an error screen.
+3) Adding Facilities
+a. All facilities were adding correctly into the database, all duplicate entries threw error pages.
+4) Adding Assets
+a. All assets were correctly added into the database, and the duplicate entry threw the error page.
+5) Asset Disposal
+a. All user role validation worked correctly
+b. All asset disposals worked correctly, with disposed assets being recorded in the database as disposed
+6) Transfer Process
+a. All user role validation worked correctly
+b. All request timelines worked correctly (could not load/unload before previous timestamps)
+c. There was no error page presented for incorrect timestamp validation (this could be on purpose, I don’t think this was necessary in the guidelines but I could be wrong)
+7) Reports
+a. All reports were functional and reported the correct data at the correct times.
+8) Database queries
+a. All database queries reported the appropriate data as per the test document.
+
+Extra test feedback:
+* All functionality worked 100%
+* All role validation worked 100%
+* As indicated in 6c, maybe put in an error page when the time is not submitted correctly. Other than that, looks really good and is completely functional. Good work!
