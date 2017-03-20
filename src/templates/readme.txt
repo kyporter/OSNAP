@@ -17,9 +17,9 @@ of(based on database state, not date); provides link back to dispose_asset page
   -approve_request.html: displays only if user is facilities officer, takes 
 'GET' request for request number; POSTs approval or rejection then redirects to 
 dashboard
-  -c_user_fail.html: takes username as 'username', announces failure of user creation and provides link to create user page
-  -c_user_success.html: takes username as 'username', announces success of user creation and provides link to login page
-  -create_user.html: renders create user page, POSTs username, password and role to /create_user
+DEPRECATED  -c_user_fail.html: takes username as 'username', announces failure of user creation and provides link to create user page
+DEPRECATED  -c_user_success.html: takes username as 'username', announces success of user creation and provides link to login page
+DEPRECATED  -create_user.html: renders create user page, POSTs username, password and role to /create_user
   -dashboard.html: takes username as 'username' and role as 'role', displays logged in user's name and role; provides links 
 to add_asset, add_facility, asset_report, transfer_report and logout; if user is a logistics officer, provides links to dispose_asset and transfer_req; 
 displays requests in progress-for facilities officers, requests to be approved, for logistics officers, requests to have load/unload times set
