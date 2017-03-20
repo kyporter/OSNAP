@@ -68,6 +68,7 @@ def login():
             pword = request.form['password']
             cur.execute("SELECT active FROM users WHERE username=(%s) and password=(%s);", (uname, pword))
             result = cur.fetchone()
+	#session['name'] is only set if user is active
             if result != None and result[0] == True:
                 session['name'] = uname
                 cur.execute("SELECT title FROM roles JOIN users ON role_fk = role_pk WHERE username=(%s);", (uname,))
@@ -96,15 +97,14 @@ IS NULL;''')
             else:
                 results = []
             return render_template('dashboard.html', username = uname, role = role, requests = results)
-        else:
-            return redirect("/login")
+    return redirect("/login")
 
 @app.route("/add_facility", methods=['GET', 'POST'])
 def add_facility():
     fac_list=getFacList()
-    if request.method == 'GET':
+    if request.method == 'GET' and 'name' in session:
         return render_template('add_facility.html', faclist = fac_list)
-    if request.method == 'POST':
+    if request.method == 'POST' and 'name' in session:
         if 'common' in request.form and 'fcode' in request.form:
             com_name = request.form['common']
             fcode = request.form['fcode']
@@ -117,15 +117,17 @@ def add_facility():
                 return render_template("add_fac_fail.html", c_name=com_name)
         else:
             return redirect('/add_facility')
+    else:
+        return redirect('/login')
 
 @app.route("/add_asset", methods=['GET', 'POST'])
 def add_asset():
-    if request.method == 'GET':
+    if request.method == 'GET' and 'name' in session:
         cur.execute("SELECT asset_tag, description FROM assets;")
         asset_list = cur.fetchall() #is a list of lists: each item[0] is a tag, each item[1] is a descripiton
         fac_list = getFacList() 
         return render_template('add_asset.html', assets = asset_list, faclist = fac_list)
-    if request.method == 'POST':
+    if request.method == 'POST' and 'name' in session:
         a_tag = request.form['tag']
         desc = request.form['desc']
         fcode = request.form['fac_code']
@@ -141,10 +143,12 @@ asset_tag = (%s)), (SELECT facility_pk FROM facilities WHERE fac_code
             return redirect('/add_asset')
         else:
             return render_template("add_ast_fail.html", asset=a_tag)
+    else:
+        return redirect('/login')
 
 @app.route("/dispose_asset", methods=['GET', 'POST'])
 def dispose_asset():
-    if session['role'] == 'Logistics Officer':
+    if 'name' in session and session['role'] == 'Logistics Officer':
         if request.method == 'GET':
             return render_template('disposal_form.html')
         if request.method == 'POST':
@@ -173,16 +177,19 @@ def dispose_asset():
                     return render_template("no_asset.html", asset=a_tag)
             else:
                 return redirect("/dispose_asset")
-    #if current user is not a logistics officer:
+    #if current user is not a logistics officer and not logged in:
+    elif 'name' not in session:
+        return redirect('/login')
+    #if current user is logged in as facilities officer
     else:
         return render_template("LO_only.html", page="Asset Disposal")    
 
 @app.route("/asset_report", methods=['GET', 'POST'])
 def asset_report():
     fac_list = getFacList()
-    if request.method == 'GET':
+    if request.method == 'GET' and 'name' in session:
         return render_template('g_report_request.html', faclist = fac_list)
-    if request.method == 'POST':
+    if request.method == 'POST' and 'name' in session:
         if 'fac_code' in request.form and 'r_date' in request.form:
             fac_code = request.form['fac_code']
             r_date = request.form['r_date']
@@ -205,12 +212,15 @@ ah.depart_dt IS NULL));''', (r_date, r_date))
             return render_template('p_report_request.html', faclist = fac_list, results = results)
         else:
             return redirect("/asset_report")
+    else:
+        return redirect('/login')
 
 @app.route("/transfer_req", methods=['GET', 'POST'])
 def transfer_req():
-    if session['role'] != 'Logistics Officer':
+    if 'name' in session and session['role'] != 'Logistics Officer':
         return render_template('LO_only.html', page = 'Transfer Requests')
-    
+    elif 'name' not in session:
+        return redirect('/login')
     if request.method == 'GET':
         cur.execute('''SELECT asset_tag, common_name FROM assets JOIN 
 asset_history ON asset_pk = asset_fk JOIN facilities ON facility_fk = facility_pk
@@ -242,8 +252,10 @@ username=(%s)), (%s));''', (a_tag, src_code, dest, session['name'], today))
 
 @app.route("/approve_req", methods = ['GET', 'POST'])
 def approve_req():
-    if session['role'] != 'Facilities Officer':
+    if 'name' in session and session['role'] != 'Facilities Officer':
         return render_template("FO_only.html", page='Request Approval')
+    elif 'name' not in session:
+        return redirect('/login')
 
     if request.method == 'GET' and 'req_num' in request.args:
         req_num = request.args.get('req_num')
@@ -285,8 +297,10 @@ request_pk=(%s);''', (today, session['name'], req_num))
 
 @app.route("/update_transit", methods=['GET', 'POST'])
 def update_transit():
-    if session['role'] != 'Logistics Officer':
+    if 'name' in session and session['role'] != 'Logistics Officer':
         return render_template('LO_only.html', page = 'Transit Updates')
+    elif 'name' not in session:
+        return redirect('/login')
 
     if request.method == 'GET' and 'req_num' in request.args:
         req_num = request.args.get('req_num')
@@ -355,10 +369,10 @@ transfer_requests WHERE request_pk=(%s)), (%s));''', (asset, req_num, u_time))
 
 @app.route("/transfer_report", methods=['GET', 'POST'])
 def transfer_report():
-    if request.method == 'GET':
+    if request.method == 'GET' and 'name' in session:
         return render_template("g_trans_rep.html")
 
-    if request.method == 'POST' and 'req_date' in request.form:
+    if request.method == 'POST' and 'req_date' in request.form and 'name' in session:
         req_date = request.form['req_date']
         cur.execute('''SELECT tr.request_pk, a.asset_tag, src.common_name, 
 dest.common_name, tr.load_dt, tr.unload_dt, sl.username, su.username FROM 
@@ -373,6 +387,8 @@ tr.sets_unload=su.user_pk WHERE ((%s) BETWEEN tr.load_dt AND tr.unload_dt) OR
     #item[2]: departed from, item[3]: will arrive at, item[4]: loaded on, 
     #item[5]: unloaded on, item[6]: load date set by, item[7]: unload date set by
         return render_template("p_trans_rep.html", rep_date=req_date, info=results)
+    else:
+        return redirect('/login')
 
 @app.route("/logout", methods=['GET'])
 def logout():

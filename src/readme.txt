@@ -1,7 +1,7 @@
 app.py : makes things work with wsgi: creates routes and defines behavior of routes
 Current routes:
 	/ and /login(equivalent): initiates session
-	/create_user
+	/update_user: not accessible via browser, use client to interact
 	/dashboard
 	/add_facility
 	/add_asset
