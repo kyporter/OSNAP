@@ -365,7 +365,7 @@ facility_fk, arrive_dt) VALUES ((%s), (SELECT destination FROM
 transfer_requests WHERE request_pk=(%s)), (%s));''', (asset, req_num, u_time))
                 conn.commit()
 
-        return redirect("/dashboard")
+    return redirect("/dashboard")
 
 @app.route("/transfer_report", methods=['GET', 'POST'])
 def transfer_report():
