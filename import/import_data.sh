@@ -1,3 +1,5 @@
+#! /usr/bin/bash
+
 DB_NAME=$1
 INPUT_DIR=$2
 
