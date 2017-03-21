@@ -1,4 +1,7 @@
 <html>
+	<head>
+		<title>LOST Asset Reports Page</title>
+	</head>
 	<body BGCOLOR="#ecefdc">
 		<form action='/asset_report' method='POST'>
 			<label><b>Facility(leave blank for all)</b></label>
@@ -11,6 +14,9 @@
 			<label><b>Date of Interest:</b></label>
 			<input type="date" name="r_date" required />
 			<input type="submit" value = "Request Report" />
+		</form>
+		<form action='/dashboard' method='GET'>
+			<input type="submit" value = "Return to Dashboard"/>
 		</form>
 	</body>
 </html>

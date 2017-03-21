@@ -328,10 +328,14 @@ def update_transit():
         asset = cur.fetchone()[0]
 
         if u_type == 'Load':
+    #checks that approval is before load date
             cur.execute('''SELECT request_pk FROM transfer_requests WHERE 
 app_time<=(%s) AND request_pk = (%s);''', (u_time, req_num))
             request_good = cur.fetchone()
 
+    #if request_good is None, then either request doesn't exist or approval hasn't been given or 
+    #approval date occurs after input load date(which means they started loading the asset before 
+    #the okay was given)
             if request_good != None: 
     #Update request information
                 cur.execute('''UPDATE transfer_requests SET load_dt=(%s), 
@@ -346,11 +350,16 @@ request_pk=(%s)) AND depart_dt IS NULL;''', (u_time, asset, req_num))
 facility_fk, arrive_dt) VALUES ((%s), (SELECT facility_pk FROM facilities WHERE 
 common_name='in transit'), (%s));''', (asset, u_time))
                 conn.commit()
+    #if bad request, send error message so user knows that load time was not set
+            else:
+                return render_template("invalid_request.html")
 
         else:
             cur.execute('''SELECT load_dt FROM transfer_requests WHERE 
 request_pk=(%s) AND load_dt <= (%s);''', (req_num, u_time))
             load_time = cur.fetchone()
+    #if load_time is None, then either the request was invalid or the input unload 
+    #time is before the stored load time
             if load_time != None:
     #Update transfer information
                 cur.execute('''UPDATE transfer_requests SET unload_dt=(%s), sets_unload=(SELECT 
@@ -364,6 +373,9 @@ common_name='in transit') AND depart_dt IS NULL;''', (u_time, asset))
 facility_fk, arrive_dt) VALUES ((%s), (SELECT destination FROM 
 transfer_requests WHERE request_pk=(%s)), (%s));''', (asset, req_num, u_time))
                 conn.commit()
+    #if bad request, send error message so user knows that unload time was not set
+            else:
+                return render_template("invalid_request.html")
 
     return redirect("/dashboard")
 
